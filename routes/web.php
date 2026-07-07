@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware([NoCache::class])->group(function () {
     
     Route::get('/', function () {
-        return view('welcome');
+        return redirect()->route('login');
     });
 
     Route::get('/dashboard', function () {

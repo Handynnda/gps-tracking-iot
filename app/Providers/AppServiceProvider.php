@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+// use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +20,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // TAMBAHKAN BARIS INI AGAR NGROK BISA MEMBACA CSS
+        // if (env('APP_ENV') !== 'local') {
+        //     URL::forceScheme('https');
+        // } else {
+        //     // Opsional: Paksa HTTPS jalan terus selama pakai Ngrok
+        //     URL::forceScheme('https');
+        // }
     }
 }

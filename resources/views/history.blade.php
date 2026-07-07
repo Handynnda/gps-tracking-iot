@@ -12,7 +12,7 @@
     
     <style>
         .strava-stats { background-color: #1a1a1a; color: white; border-radius: 8px; padding: 20px; }
-        .strava-orange { color: #fc4c02; }
+        .strava-orange { color: #0230fc; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -90,10 +90,9 @@
         </div>
     </div>
 
-    <!-- STATS ALA STRAVA -->
     <div class="mt-4 grid grid-cols-2 gap-4 strava-stats shadow-lg">
         <div>
-            <p class="text-sm text-gray-400">Total Distance (Haversine)</p>
+            <p class="text-sm text-gray-400">Total Jarak Tempuh</p>
             <h2 class="text-3xl font-bold"><span id="total-distance">0.00</span> <span class="text-lg font-normal">km</span></h2>
         </div>
         <div>
@@ -102,49 +101,12 @@
         </div>
     </div>
 
-    {{-- <!-- MAP CONTAINER -->
-    <div class="mt-6 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-bold"><i class="fas fa-route strava-orange mr-2"></i> Peta Rute (Polyline)</h2>
-        </div>
-        <div id="map" class="w-full h-[400px] rounded-lg border border-gray-300 z-10"></div>
-    </div>
-    <!-- TABEL LOG HISTORI -->
-    <div class="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-10">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-bold text-gray-800">Log Koordinat: <span id="label-tanggal-tabel" class="text-blue-600"></span></h2>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-gray-50 text-gray-600 text-sm">
-                        <th class="p-4 border-b">Waktu</th>
-                        <th class="p-4 border-b">Latitude</th>
-                        <th class="p-4 border-b">Longitude</th>
-                        <th class="p-4 border-b">Kecepatan</th>
-                    </tr>
-                </thead>
-                <tbody id="history-table-body" class="text-sm text-gray-700">
-                    <tr><td colspan="4" class="p-4 text-center text-gray-500">Memuat data rute...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div> --}}
-
     <!--  MAP & TABEL -->
     <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10 items-start">
-        
-        <!-- MAP CONTAINER (KIRI, LEBIH BESAR: col-span-2) -->
-        {{-- <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 lg:col-span-2 flex flex-col h-[550px]">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold"><i class="fas fa-route strava-orange mr-2"></i> Peta History Rute </h2>
-            </div>
-            <div id="map" class="w-full rounded-lg border border-gray-300 z-10 flex-grow"></div>
-        </div> --}}
 
         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 lg:col-span-2 flex flex-col h-[550px]">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold"><i class="fas fa-route strava-orange mr-2"></i> Peta Rute (Polyline)</h2>
+                <h2 class="text-lg font-bold"><i class="fas fa-route strava-orange mr-2"></i> Peta History Rute </h2>
                 
                 <button id="btn-center-map" class="bg-blue-100 hover:bg-blue-200 text-blue-700 text-sm font-bold py-1.5 px-3 rounded-lg border border-blue-300 shadow-sm transition-all">
                     <i class="fas fa-crosshairs mr-1"></i> Pusatkan Garis
@@ -153,7 +115,7 @@
             <div id="map" class="w-full rounded-lg border border-gray-300 z-10 flex-grow"></div>
         </div>
 
-        <!-- TABEL LOG HISTORI (KANAN, NGEPRESS: col-span-1) -->
+        <!-- TABEL LOG HISTORI -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col h-[550px]">
             <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 rounded-t-xl">
                 <h2 class="text-lg font-bold text-gray-800">Log Koordinat: <span id="label-tanggal-tabel" class="text-blue-600"></span></h2>
@@ -212,7 +174,7 @@
                   Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
                   Math.sin(dLon/2) * Math.sin(dLon/2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c; // Mengembalikan hasil dalam km
+        return R * c;
     }
 
     // Fungsi Utama: Mengambil Data Berdasarkan Tanggal yang Dipilih
@@ -228,7 +190,7 @@
         document.getElementById("top-speed").innerText = "0";
         tableBody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>Mencari data dari Firebase...</td></tr>';
 
-        // Hentikan pendengar (listener) Firebase lama agar data tidak bertumpuk
+        // Hentikan Firebase lama agar data tidak bertumpuk
         if (currentListenerRef) {
             off(currentListenerRef);
         }
@@ -341,8 +303,8 @@
             tableBody.innerHTML = '';
             
             // KITA UBAH STRUKTUR ARRAY-NYA UNTUK MENDUKUNG GARIS PUTUS
-            let allSegments = [];    // Menyimpan kumpulan garis yang putus-putus
-            let currentSegment = []; // Menyimpan garis yang sedang berjalan (nyambung)
+            let allSegments = [];
+            let currentSegment = [];
             
             let totalJarakKm = 0;
             let topSpeed = 0;
@@ -358,13 +320,12 @@
                     const lat = parseFloat(point.lat);
                     const lng = parseFloat(point.lng);
 
-                    let isJump = false; // Penanda apakah alat habis mati/lompat
+                    let isJump = false;
 
-                    // 1. Deteksi "Teleportasi" / Alat Mati
+                    // Deteksi "Teleportasi" / Alat Mati
                     if(lastLat !== null && lastLng !== null) {
                         const jarakTitik = hitungJarakHaversine(lastLat, lastLng, lat, lng);
                         
-                        // Jika titik melompat lebih dari 0.5 km (500 meter) secara tiba-tiba,
                         // asumsikan GPS sempat dimatikan dan putus garisnya!
                         if(jarakTitik > 0.5) {
                             isJump = true;
@@ -374,23 +335,23 @@
                         }
                     }
 
-                    // 2. Jika terdeteksi lompat, simpan garis yang lama dan buat kanvas baru
+                    // Jika terdeteksi lompat, simpan garis yang lama dan buat kanvas baru
                     if(isJump) {
                         if(currentSegment.length > 0) allSegments.push(currentSegment);
-                        currentSegment = []; // Reset jadi kosong untuk garis baru di kampus
+                        currentSegment = [];
                     }
 
-                    // 3. Masukkan titik ke dalam segmen garis yang sedang aktif
+                    // Masukkan titik ke dalam segmen garis yang sedang aktif
                     currentSegment.push([lat, lng]);
                     
-                    // 4. Hitung Kecepatan Maksimal (Top Speed)
+                    // Hitung Kecepatan Maksimal (Top Speed)
                     const currentSpeed = point.speed || 0;
                     if(currentSpeed > topSpeed) topSpeed = currentSpeed;
 
                     lastLat = lat;
                     lastLng = lng;
                     
-                    // 5. Simpan baris HTML ke dalam array tableRows
+                    // Simpan baris HTML ke dalam array tableRows
                     tableRows.push(`
                         <tr class="border-b hover:bg-gray-50">
                             <td class="p-2"><span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm font-bold">${point.waktu || '-'}</span></td>
@@ -418,28 +379,42 @@
             document.getElementById("total-distance").innerText = totalJarakKm.toFixed(2);
             document.getElementById("top-speed").innerText = Math.round(topSpeed);
 
-            // Gambar Garis Polyline (Mendukung Garis Terputus)
+
             if (allSegments.length > 0) {
                 if (routeLine) map.removeLayer(routeLine);
-                if (startMarker) map.removeLayer(startMarker);
-                if (endMarker) map.removeLayer(endMarker);
+                
+                // Hapus semua marker dari sesi sebelumnya (jika ada) agar tidak menumpuk saat ganti tanggal
+                if (window.routeMarkers) {
+                    window.routeMarkers.forEach(m => map.removeLayer(m));
+                }
+                window.routeMarkers = []; // Buat array penampung marker kosong
 
-                // Kehebatan Leaflet: Otomatis membaca Array di dalam Array untuk memutus garis!
+                // Gambar garis rute utama
                 routeLine = L.polyline(allSegments, {
-                    color: '#fc4c02', 
-                    weight: 5,
+                    color: '#0000CD', 
+                    weight: 2,
                     opacity: 0.8,
                     smoothFactor: 1
                 }).addTo(map);
 
-                // Pasang marker di ujung-ujungnya
-                const titikAwal = allSegments[0][0];
-                const segmenTerakhir = allSegments[allSegments.length - 1];
-                const titikAkhir = segmenTerakhir[segmenTerakhir.length - 1];
+                // Pasang marker Hijau dan Merah di SETIAP potongan rute
+                allSegments.forEach((segment, index) => {
+                    const titikAwal = segment[0];
+                    const titikAkhir = segment[segment.length - 1];
 
-                startMarker = L.circleMarker(titikAwal, { radius: 6, color: 'green', fillColor: 'white', fillOpacity: 1 }).addTo(map).bindPopup("Titik Awal");
-                endMarker = L.circleMarker(titikAkhir, { radius: 6, color: 'red', fillColor: 'white', fillOpacity: 1 }).addTo(map).bindPopup("Titik Terakhir");
+                    // Marker Hijau (Mesin Menyala / Mulai Jalan)
+                    let markerMulai = L.circleMarker(titikAwal, { radius: 6, color: 'green', fillColor: 'white', fillOpacity: 1 })
+                        .addTo(map).bindPopup(`<b>Titik Awal</b> (Sesi ${index + 1})`);
+                    
+                    // Marker Merah (Mesin Mati / Parkir)
+                    let markerBerhenti = L.circleMarker(titikAkhir, { radius: 6, color: 'red', fillColor: 'white', fillOpacity: 1 })
+                        .addTo(map).bindPopup(`<b>Titik Berhenti</b> (Sesi ${index + 1})`);
+
+                    // Simpan marker ke dalam memori agar bisa dihapus saat refresh/ganti tanggal
+                    window.routeMarkers.push(markerMulai, markerBerhenti);
+                });
             }
+
         });
 
     }

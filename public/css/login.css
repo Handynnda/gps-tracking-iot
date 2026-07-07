@@ -1,0 +1,43 @@
+body {
+    min-height: 100vh;
+}
+
+.glass-card {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 16px 12px 44px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.12);
+    color: white;
+    border: none;
+    outline: none;
+}
+
+.form-input::placeholder {
+    color: #d1d5db;
+}
+
+.form-input:focus {
+    box-shadow: 0 0 0 2px #22d3ee;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    background: #06b6d4;
+    color: white;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.login-btn:hover {
+    background: #0891b2;
+    transform: translateY(-2px);
+}

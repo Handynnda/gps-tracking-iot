@@ -1,0 +1,185 @@
+body.register-body{
+    min-height:100vh;
+    background:linear-gradient(
+        135deg,
+        #0f172a,
+        #1e3a8a,
+        #0f172a
+    );
+}
+
+.register-container{
+    min-height:100vh;
+    display:flex;
+}
+
+.register-left{
+    width:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px;
+}
+
+.register-info{
+    text-align:center;
+    color:white;
+}
+
+.register-title{
+    font-size:48px;
+    font-weight:700;
+    margin-bottom:15px;
+}
+
+.register-subtitle{
+    font-size:20px;
+    color:#d1d5db;
+    max-width:550px;
+    margin:auto;
+}
+
+.register-stats{
+    display:flex;
+    justify-content:center;
+    gap:50px;
+    margin-top:50px;
+}
+
+.register-stats h2{
+    font-size:30px;
+    color:#22d3ee;
+    font-weight:700;
+}
+
+.register-stats p{
+    color:#9ca3af;
+}
+
+.register-right{
+    width:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:25px;
+}
+
+.register-card{
+    width:100%;
+    max-width:450px;
+    background:rgba(255,255,255,0.08);
+    backdrop-filter:blur(15px);
+    border:1px solid rgba(255,255,255,0.2);
+    border-radius:24px;
+    padding:35px;
+    box-shadow:0 25px 50px rgba(0,0,0,0.4);
+}
+
+.register-header{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.register-header h2{
+    font-size:32px;
+    font-weight:700;
+    color:white;
+}
+
+.register-header p{
+    color:#d1d5db;
+    margin-top:8px;
+}
+
+.form-group{
+    margin-bottom:18px;
+}
+
+.form-group label{
+    display:block;
+    color:#e5e7eb;
+    margin-bottom:8px;
+    font-size:14px;
+}
+
+.form-group input{
+    width:100%;
+    padding:14px 16px;
+    border:none;
+    border-radius:14px;
+    background:rgba(255,255,255,0.15);
+    color:white;
+    outline:none;
+}
+
+.form-group input::placeholder{
+    color:#d1d5db;
+}
+
+.form-group input:focus{
+    box-shadow:0 0 0 3px #22d3ee;
+}
+
+.register-btn{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:14px;
+    background:#06b6d4;
+    color:white;
+    font-weight:700;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.register-btn:hover{
+    background:#0891b2;
+}
+
+.kembali-btn{
+    width:100;
+    margin-top: 15px;
+    padding:14px;
+    border:none;
+    border-radius:14px;
+    background:#06b6d4;
+    color:white;
+    font-weight:700;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.kembali-btn:hover{
+    background:#0891b2;
+}
+
+.login-link{
+    text-align:center;
+    margin-top:20px;
+}
+
+.login-link span{
+    color:#d1d5db;
+}
+
+.login-link a{
+    color:#22d3ee;
+    text-decoration:none;
+    font-weight:600;
+    margin-left:5px;
+}
+
+.login-link a:hover{
+    color:white;
+}
+
+@media(max-width:1024px){
+
+    .register-left{
+        display:none;
+    }
+
+    .register-right{
+        width:100%;
+    }
+}

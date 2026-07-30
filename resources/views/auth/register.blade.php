@@ -33,12 +33,6 @@
         </li>
 
         <li>
-            <a href="{{ route('register') }}">
-                Daftarkan User
-            </a>
-        </li>
-
-        <li>
             <a href="{{ route('lokasi.aman') }}">
                 Ubah Koordinat
             </a>
@@ -48,6 +42,14 @@
             <a href="{{ route('profile.edit') }}">
                 Profile
             </a>
+        </li>
+
+        <li>
+            @if(session('user_data') && session('user_data')['email'] === 'uzmaizzatul0906@gmail.com')
+                <a href="{{ route('register') }}">
+                    <span>Daftarkan User</span>
+                </a>
+            @endif
         </li>
     </ul>
 
@@ -65,8 +67,7 @@
 <div class="main-content">
     <div class="topbar">
         <div>
-            <h1>Daftarkan User Baru</h1>
-            <p>Berikan akses monitoring kendaraan kepada pengguna lain</p>
+            <h1>Manajemen User</h1>
         </div>
         <div class="profile-box">
             <i class="fas fa-user-circle"></i>
@@ -74,22 +75,27 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-        
-        <!-- PANEL FORM REGISTER -->
-        <div class="md:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+    <!-- Alert Pesan Sukses -->
+    @if(session('status'))
+        <div class="mt-6 p-4 rounded-lg bg-green-100 text-green-700 border border-green-300 flex items-center">
+            <i class="fas fa-check-circle mr-2 text-xl"></i> {{ session('status') }}
+        </div>
+    @endif
+
+    <!-- BAGIAN ATAS: FORM REGISTER -->
+    <div class="mt-6">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <h2 class="text-lg font-bold text-gray-800 mb-6 border-b pb-3">
                 <i class="fas fa-user-plus text-blue-600 mr-2"></i> Form Registrasi Akun
             </h2>
 
-            <form method="POST" action="{{ route('register') }}" class="space-y-4">
+            <!-- Form dibuat berjejer 2 kolom untuk menghemat ruang vertikal -->
+            <form method="POST" action="{{ route('register') }}" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @csrf
 
                 <!-- Nama -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Nama Lengkap
-                    </label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
                     <input type="text" name="name" value="{{ old('name') }}" required
                            class="w-full border border-gray-300 rounded-md p-2.5 bg-gray-50 outline-none focus:ring focus:ring-blue-200"
                            placeholder="Masukkan nama lengkap">
@@ -98,9 +104,7 @@
 
                 <!-- Email -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Alamat Email
-                    </label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Alamat Email</label>
                     <input type="email" name="email" value="{{ old('email') }}" required
                            class="w-full border border-gray-300 rounded-md p-2.5 bg-gray-50 outline-none focus:ring focus:ring-blue-200"
                            placeholder="email@domain.com">
@@ -109,9 +113,7 @@
 
                 <!-- Password -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Password
-                    </label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
                     <input type="password" name="password" required
                            class="w-full border border-gray-300 rounded-md p-2.5 bg-gray-50 outline-none focus:ring focus:ring-blue-200"
                            placeholder="Minimal 8 karakter">
@@ -120,57 +122,77 @@
 
                 <!-- Konfirmasi Password -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Konfirmasi Password
-                    </label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password</label>
                     <input type="password" name="password_confirmation" required
                            class="w-full border border-gray-300 rounded-md p-2.5 bg-gray-50 outline-none focus:ring focus:ring-blue-200"
                            placeholder="Ulangi password di atas">
                 </div>
 
-                <!-- Tombol Submit -->
-                <div class="pt-4">
+                <!-- Tombol Submit (Membentang penuh di bawah form) -->
+                <div class="md:col-span-2 pt-2">
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition duration-200 shadow-md">
                         <i class="fas fa-check-circle mr-2"></i> Daftarkan Sekarang
                     </button>
                 </div>
             </form>
         </div>
-
-        <!-- PANEL INFO APLIKASI -->
-        <div class="md:col-span-1 bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-fit">
-            <h2 class="text-lg font-bold text-gray-800 mb-4">
-                <i class="fas fa-shield-alt text-green-600 mr-2"></i> Keunggulan Sistem
-            </h2>
-            
-            <div class="space-y-4">
-                <div class="flex items-start bg-blue-50 p-3 rounded-lg border border-blue-100">
-                    <i class="fas fa-clock text-blue-500 mt-1 mr-3 text-lg"></i>
-                    <div>
-                        <h3 class="font-bold text-sm text-gray-800">24/7 Monitoring</h3>
-                        <p class="text-xs text-gray-600 mt-1">Pantau kendaraan kapan saja tanpa henti melalui database Firebase yang responsif.</p>
-                    </div>
-                </div>
-
-                <div class="flex items-start bg-blue-50 p-3 rounded-lg border border-blue-100">
-                    <i class="fas fa-satellite-dish text-blue-500 mt-1 mr-3 text-lg"></i>
-                    <div>
-                        <h3 class="font-bold text-sm text-gray-800">Live GPS Tracking</h3>
-                        <p class="text-xs text-gray-600 mt-1">Lacak posisi koordinat yang akurat dan pergerakan rute secara langsung di atas peta interaktif.</p>
-                    </div>
-                </div>
-
-                <div class="flex items-start bg-blue-50 p-3 rounded-lg border border-blue-100">
-                    <i class="fas fa-draw-polygon text-blue-500 mt-1 mr-3 text-lg"></i>
-                    <div>
-                        <h3 class="font-bold text-sm text-gray-800">Geofencing Security</h3>
-                        <p class="text-xs text-gray-600 mt-1">Amankan kendaraan dengan batas wilayah virtual yang memicu cut-off mesin secara otomatis.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
+
+    <!-- BAGIAN BAWAH: TABEL USER -->
+    <div class="mt-6 bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-10">
+        <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-3">
+            <i class="fas fa-users text-blue-600 mr-2"></i> Daftar Akun Terdaftar
+        </h2>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left text-gray-600">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-100 rounded-t-lg">
+                    <tr>
+                        <th class="px-6 py-3 rounded-tl-lg">No</th>
+                        <th class="px-6 py-3">Nama</th>
+                        <th class="px-6 py-3">Email</th>
+                        <th class="px-6 py-3">Role</th>
+                        <th class="px-6 py-3 rounded-tr-lg text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($users ?? [] as $id => $user)
+                        <tr class="bg-white border-b hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4">{{ $loop->iteration }}</td>
+                            <td class="px-6 py-4 font-medium text-gray-900">{{ $user['name'] ?? '-' }}</td>
+                            <td class="px-6 py-4">{{ $user['email'] ?? '-' }}</td>
+                            <td class="px-6 py-4">
+                                <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-200">
+                                    {{ $user['role'] ?? 'User' }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 flex justify-center gap-2">
+                                <a href="#" class="text-white bg-amber-500 hover:bg-amber-600 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                
+                                <form action="#" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun {{ $user['name'] ?? 'ini' }}?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors">
+                                        <i class="fas fa-trash"></i> Hapus
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                                <i class="fas fa-folder-open text-3xl mb-3 text-gray-300 block"></i>
+                                Belum ada user yang terdaftar di Firebase.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 </div>
 
 </body>

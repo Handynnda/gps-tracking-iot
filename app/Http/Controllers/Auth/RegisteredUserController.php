@@ -12,43 +12,46 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
-    public function create(): View
+    public function create(): View|RedirectResponse
     {
-        return view('auth.register');
+        if (!session('user_data') || session('user_data')['email'] !== 'uzmaizzatul0906@gmail.com') {
+            return redirect()->route('dashboard');
+        }
+
+        $firebaseUrl = env('FIREBASE_DATABASE_URL') . '/GPS_TRACKING/AKUN.json';
+        $response = Http::get($firebaseUrl);
+        
+        $users = $response->json() ?? []; 
+
+        return view('auth.register', compact('users'));
     }
 
     public function store(Request $request): RedirectResponse
     {
-        // Validasi input (tanpa aturan unique ke tabel users MySQL)
+        if (!session('user_data') || session('user_data')['email'] !== 'uzmaizzatul0906@gmail.com') {
+            return redirect()->route('dashboard');
+        }
+
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        // 1. Buat ID unik untuk user baru
         $userId = uniqid('user_');
 
-        // 2. Siapkan data yang akan dikirim ke Firebase
         $userData = [
             'id' => $userId,
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password), // Wajib di-hash demi keamanan
+            'password' => Hash::make($request->password),
             'role' => 'user',
             'created_at' => now()->toDateTimeString()
         ];
 
-        // 3. Kirim data ke Firebase (Path: /GPS_TRACKING/AKUN/ID_USER)
         $firebaseUrl = env('FIREBASE_DATABASE_URL') . '/GPS_TRACKING/AKUN/' . $userId . '.json';
         Http::put($firebaseUrl, $userData);
 
-        // 4. Buat session manual untuk menandai user sudah login
-        session([
-            'is_logged_in' => true,
-            'user_data' => $userData
-        ]);
-
-        return redirect(route('dashboard', absolute: false));
+        return back()->with('status', 'User baru berhasil didaftarkan!');
     }
 }

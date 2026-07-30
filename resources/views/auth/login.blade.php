@@ -104,13 +104,24 @@
                         <input
                             type="email"
                             name="email"
+                            id="email-input"
                             value="{{ old('email') }}"
                             required
                             autofocus
                             class="form-input"
-                            placeholder="email@gmail.com">
+                            placeholder="email@gmail.com"
+                            autocomplete="off">
 
                     </div>
+                    
+                    <!-- DATALIST UNTUK DROPDOWN RIWAYAT EMAIL -->
+                    <datalist id="email-options">
+                        @if(isset($savedEmails))
+                            @foreach($savedEmails as $savedEmail)
+                                <option value="{{ $savedEmail }}"></option>
+                            @endforeach
+                        @endif
+                    </datalist>
 
                     @error('email')
                         <p class="text-red-300 text-sm mt-2">
@@ -179,6 +190,23 @@
     </div>
 
 </div>
+
+<!-- SCRIPT datalist -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const emailInput = document.getElementById('email-input');
+
+        if(emailInput) {
+            emailInput.addEventListener('input', function() {
+                if (this.value.length > 0) {
+                    this.setAttribute('list', 'email-options');
+                } else {
+                    this.removeAttribute('list');
+                }
+            });
+        }
+    });
+</script>
 
 </body>
 </html>

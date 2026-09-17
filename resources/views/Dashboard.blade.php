@@ -34,12 +34,23 @@
             <a href="{{ route('history.index') }}">
                 Histori Perjalanan
             </a>
+        </li>        
+        
+        <li>
+            <a href="{{ route('notifikasi.index') }}">
+                Notifikasi
+            </a>
         </li>
 
-        
         <li>
             <a href="{{ route('lokasi.aman') }}">
                 Ubah Koordinat
+            </a>
+        </li>
+
+        <li>
+            <a href="{{ route('perangkat.index') }}">
+                Kelola Perangkat
             </a>
         </li>
 
@@ -155,6 +166,10 @@
         </div>
 
     </div>
+
+    {{-- <div>
+        <h1>Matikan Kendaraan</h1>
+    </div> --}}
 
     <!-- MAP -->
     <div class="map-container">

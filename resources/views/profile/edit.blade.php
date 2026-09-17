@@ -24,21 +24,37 @@
                 Dashboard
             </a>
         </li>
+
         <li>
             <a href="{{ route('history.index') }}">
                 Histori Perjalanan
             </a>
+        </li>        
+        
+        <li>
+            <a href="{{ route('notifikasi.index') }}">
+                Notifikasi
+            </a>
         </li>
+
         <li>
             <a href="{{ route('lokasi.aman') }}">
                 Ubah Koordinat
             </a>
         </li>
+
+        <li>
+            <a href="{{ route('perangkat.index') }}">
+                Kelola Perangkat
+            </a>
+        </li>
+
         <li>
             <a href="{{ route('profile.edit') }}">
                 Profile
             </a>
         </li>
+
         <li>
             @if(session('user_data') && session('user_data')['email'] === 'uzmaizzatul0906@gmail.com')
                 <a href="{{ route('register') }}">

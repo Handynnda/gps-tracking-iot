@@ -21,6 +21,20 @@ Route::middleware([NoCache::class])->group(function () {
         return view('dashboard', compact('user'));
     })->name('dashboard');
 
+    Route::get('/notifikasi', function () {
+        if (!session()->has('is_logged_in')) {
+            return redirect()->route('login');
+        }
+        return view('notifikasi');
+    })->name('notifikasi.index');
+
+    Route::get('/perangkat', function () {
+        if (!session()->has('is_logged_in')) {
+            return redirect()->route('login');
+        }
+        return view('perangkat');
+    })->name('perangkat.index');
+
     Route::get('/history', function () {
         if (!session()->has('is_logged_in')) {
             return redirect()->route('login');
@@ -55,7 +69,7 @@ Route::middleware([NoCache::class])->group(function () {
     // Rute untuk memproses/menyimpan password baru ke database
     Route::post('/reset-password', [App\Http\Controllers\Auth\NewPasswordController::class, 'store'])
         ->middleware('guest')
-        ->name('password.store'); // <--- Ubah bagian ini
+        ->name('password.store');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

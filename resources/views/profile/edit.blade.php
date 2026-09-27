@@ -13,6 +13,7 @@
 
 <!-- SIDEBAR -->
 <div class="sidebar">
+
     <div class="logo">
         <i class="fas fa-motorcycle"></i>
         <span>GPS Tracking</span>
@@ -38,25 +39,29 @@
         </li>
 
         <li>
-            <a href="{{ route('lokasi.aman') }}">
-                Ubah Koordinat
-            </a>
-        </li>
-
-        <li>
-            <a href="{{ route('perangkat.index') }}">
-                Kelola Perangkat
-            </a>
-        </li>
-
-        <li>
             <a href="{{ route('profile.edit') }}">
                 Profile
             </a>
         </li>
 
         <li>
-            @if(session('user_data') && session('user_data')['email'] === 'uzmaizzatul0906@gmail.com')
+            @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
+                <a href="{{ route('lokasi.aman') }}">
+                    <span>Ubah Koordinat</span>
+                </a>
+            @endif
+        </li>
+
+        <li>
+            @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
+                <a href="{{ route('perangkat.index') }}">
+                    <span>Kelola Perangkat</span>
+                </a>
+            @endif
+        </li>
+
+        <li>
+            @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
                 <a href="{{ route('register') }}">
                     <span>Daftarkan User</span>
                 </a>
@@ -73,6 +78,7 @@
             </button>
         </form>
     </div>
+
 </div>
 
 <!-- CONTENT -->

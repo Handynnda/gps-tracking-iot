@@ -5,6 +5,7 @@ use App\Http\Controllers\GpsController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\NoCache;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\RegisteredUserController;
 
 Route::middleware([NoCache::class])->group(function () {
     
@@ -77,6 +78,18 @@ Route::middleware([NoCache::class])->group(function () {
     Route::resource('gps', GpsController::class);
     Route::resource('users', UserController::class);
 
+    Route::get('/register', [App\Http\Controllers\Auth\RegisteredUserController::class, 'create'])->name('register');
+    Route::post('/register', [App\Http\Controllers\Auth\RegisteredUserController::class, 'store']);
+
+    // Route::get('/register', function () {
+
+    //     if (!session()->has('is_logged_in')) {
+    //         return redirect()->route('login');
+    //     }
+
+    //     return view('auth.register');
+
+    // })->name('register');
 });
 
 require __DIR__.'/auth.php';

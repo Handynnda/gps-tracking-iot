@@ -14,7 +14,7 @@ class RegisteredUserController extends Controller
 {
     public function create(): View|RedirectResponse
     {
-        if (!session('user_data') || session('user_data')['email'] !== 'uzmaizzatul0906@gmail.com') {
+        if (!session('user_data') || session('user_data')['email'] !== 'handynandaf@gmail.com') {
             return redirect()->route('dashboard');
         }
 
@@ -28,7 +28,7 @@ class RegisteredUserController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        if (!session('user_data') || session('user_data')['email'] !== 'uzmaizzatul0906@gmail.com') {
+        if (!session('user_data') || session('user_data')['email'] !== 'handynandaf@gmail.com') {
             return redirect()->route('dashboard');
         }
 

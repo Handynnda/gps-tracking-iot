@@ -50,10 +50,6 @@
 
             </div>
 
-            <div class="mt-12">
-                <i class="fa-solid fa-motorcycle text-cyan-400 text-8xl"></i>
-            </div>
-
         </div>
 
     </div>
@@ -65,9 +61,6 @@
 
             <div class="text-center mb-8">
 
-                <div class="mb-4">
-                    <i class="fa-solid fa-shield-halved text-cyan-400 text-5xl"></i>
-                </div>
 
                 <h2 class="text-3xl font-bold text-white">
                     Selamat Datang

@@ -51,10 +51,6 @@
 
             </div>
 
-            <div class="mt-12">
-                <i class="fa-solid fa-motorcycle text-cyan-400 text-8xl"></i>
-            </div>
-
         </div>
 
     </div>

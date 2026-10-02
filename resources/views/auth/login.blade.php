@@ -156,11 +156,6 @@
 
                 <!-- REMEMBER & LUPA PASSWORD -->
                 <div class="flex items-center justify-between mb-6">
-                    <label class="flex items-center gap-2 text-sm text-gray-300">
-                        <input type="checkbox" name="remember" class="rounded border-gray-500">
-                        Remember Me
-                    </label>
-
                     <a href="{{ route('password.request') }}" class="text-cyan-400 hover:text-cyan-300 text-sm transition-colors">
                         Lupa Password?
                     </a>

@@ -33,8 +33,11 @@
             </a>
         </li>        
         
+        @php
+            $idPerangkatSession = session('user_data')['id_perangkat'] ?? session('id_perangkat') ?? 'perangkat_1';
+        @endphp
         <li>
-            <a href="{{ route('notifikasi.index') }}">
+            <a href="{{ route('notifications.index', $idPerangkatSession) }}" class="...">
                 Notifikasi
             </a>
         </li>

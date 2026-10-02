@@ -6,6 +6,43 @@ use App\Http\Controllers\UserController;
 use App\Http\Middleware\NoCache;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\NotificationController;
+use App\Services\NotificationService;
+
+Route::get('/tes-email', function () {
+    // Ambil data user dari session
+    $userData = session('user_data');
+    
+    // Ambil id_perangkat (atau gunakan ID default/dummy jika belum ada di session)
+    $idPerangkat = is_array($userData) 
+        ? ($userData['id_perangkat'] ?? 'perangkat_1') 
+        : ($userData->id_perangkat ?? 'perangkat_1');
+
+    $userEmail = is_array($userData) 
+        ? ($userData['email'] ?? null) 
+        : ($userData->email ?? null);
+
+    // Jika di session belum ada email, masukkan email aktif kamu
+    if (!$userEmail) {
+        $userEmail = 'handynandaf@gmail.com';
+    }
+
+    // Koordinat contoh area Kuningan (-6.9772, 108.4831)
+    $lat = -6.9772;
+    $lng = 108.4831;
+
+    // Kirim notifikasi sesuai signature method NotificationService terbaru
+    NotificationService::send(
+        idPerangkat: $idPerangkat,
+        pesanNotifikasi: 'Pelanggaran Zona Geofencing! Kendaraan terdeteksi keluar dari radius lokasi aman.',
+        tipeNotifikasi: 'danger',
+        userEmail: $userEmail,
+        lat: $lat,
+        lng: $lng
+    );
+
+    return "Berhasil! Notifikasi dikirim untuk ID Perangkat: <b>{$idPerangkat}</b> dan email dikirim ke: <b>{$userEmail}</b>. Silakan cek Inbox Gmail dan node <code>/GPS_TRACKING/NOTIFIKASI_LOG/{$idPerangkat}</code> di Firebase!";
+});
 
 Route::middleware([NoCache::class])->group(function () {
     
@@ -22,11 +59,19 @@ Route::middleware([NoCache::class])->group(function () {
         return view('dashboard', compact('user'));
     })->name('dashboard');
 
+    
     Route::get('/notifikasi', function () {
-        if (!session()->has('is_logged_in')) {
-            return redirect()->route('login');
-        }
-        return view('notifikasi');
+        // 1. Ambil ID perangkat (misal dari session atau default)
+        $idPerangkat = session('id_perangkat', 'perangkat_1'); 
+
+        // 2. Ambil data dari Firebase (sesuaikan dengan method/helper Firebase kamu)
+        $notifications = []; // Misal: FirebaseService::getNotifications($idPerangkat);
+
+        // 3. Kirim data ke View Notifikasi
+        return view('notifikasi', [
+            'notifications' => $notifications ?? [], // Kuncinya ada di '?? []' agar tidak error null
+            'idPerangkat'   => $idPerangkat,
+        ]);
     })->name('notifikasi.index');
 
     Route::get('/perangkat', function () {
@@ -64,8 +109,14 @@ Route::middleware([NoCache::class])->group(function () {
 
     // Rute untuk menampilkan halaman form pembuatan password baru (DARI LINK EMAIL)
     Route::get('/reset-password/{token}', [App\Http\Controllers\Auth\NewPasswordController::class, 'create'])
-        ->middleware('guest')
-        ->name('password.reset');
+    ->middleware('guest')
+    ->name('password.reset');
+
+    // Route untuk aksi notifikasi
+    Route::get('/notifikasi/{idPerangkat?}', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifikasi/{idPerangkat}/read/{pushId}', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifikasi/{idPerangkat}/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
+    Route::delete('/notifikasi/{idPerangkat}/delete/{pushId}', [NotificationController::class, 'destroy'])->name('notifications.destroy');    
 
     // Rute untuk memproses/menyimpan password baru ke database
     Route::post('/reset-password', [App\Http\Controllers\Auth\NewPasswordController::class, 'store'])

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPS Tracking Dashboard</title>
+    <title>Notifikasi - GPS Tracking</title>
 
     <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
 
@@ -59,13 +59,13 @@
             @endif
         </li>
 
-        <li>
-            @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
+        @if(session('user_data.email') === 'handynandaf@gmail.com')
+            <li>
                 <a href="{{ route('perangkat.index') }}">
                     <span>Kelola Perangkat</span>
                 </a>
-            @endif
-        </li>
+            </li>
+        @endif
 
         <li>
             @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
@@ -88,141 +88,9 @@
 
 </div>
 
-
 {{-- isi awal --}}
 
-{{-- <div class="main-content">
-    
-    <div class="topbar">
-        <div>
-            <h1>Pusat Notifikasi</h1>
-            <p>Riwayat peringatan geofencing dan status kendaraan</p>
-        </div>
-        <div class="profile-box">
-            <i class="fas fa-user-circle"></i>
-            @if(is_array(session('user_data')))
-                {{ session('user_data')['name'] ?? 'Pengguna' }}
-            @else
-                {{ session('user_data')->name ?? 'Pengguna' }}
-            @endif        
-        </div>
-    </div>
-
-    <!-- MAIN PANEL -->
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mt-6">
-        
-        <!-- HEADER BUTTONS -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b border-gray-100 pb-4">
-            <h2 class="text-lg font-bold text-gray-800 flex items-center">
-                <i class="fas fa-bell text-blue-600 mr-2"></i> Daftar Notifikasi Masuk
-            </h2>
-            
-            <!-- Tombol Tandai Semua Dibaca -->
-            @if(!empty($notifications) && count($notifications) > 0)                
-                <form action="{{ route('notifications.readAll', $idPerangkat) }}" method="POST">
-                    @csrf
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition duration-200 shadow-sm flex items-center gap-2">
-                        <i class="fa-solid fa-check-double"></i> Tandai Semua Dibaca
-                    </button>
-                </form>
-            @endif
-        </div>
-
-        <!-- ALERT STATUS -->
-        @if(session('status'))
-            <div class="mb-4 p-3 rounded-lg bg-green-50 text-green-700 border border-green-200 text-sm flex items-center gap-2">
-                <i class="fas fa-check-circle"></i>
-                <span>{{ session('status') }}</span>
-            </div>
-        @endif
-
-        <!-- DAFTAR NOTIFIKASI -->
-        <div class="space-y-3">
-            @forelse($notifications ?? [] as $notif)
-                @php
-                    $isRead = $notif['is_read'] ?? false;
-                    $type = $notif['tipe_notifikasi'] ?? $notif['type'] ?? 'info';
-                    $message = $notif['pesan_notifikasi'] ?? $notif['message'] ?? 'Tidak ada pesan detail.';
-                    $title = $notif['title'] ?? 'Peringatan Geofencing';
-                    $timestamp = $notif['created_at'] ?? $notif['timestamp'] ?? '-';
-                    $pushId = $notif['id'] ?? '';
-                @endphp
-
-                <div class="p-4 rounded-xl border transition flex items-start justify-between gap-4 {{ $isRead ? 'bg-gray-50 border-gray-200 text-gray-500' : 'bg-blue-50/50 border-blue-200 text-gray-800 font-medium' }}">
-                    
-                    <div class="flex items-start gap-3">
-                        <!-- ICON BY TYPE -->
-                        <div class="mt-1 shrink-0">
-                            @if($type === 'danger')
-                                <i class="fa-solid fa-triangle-exclamation text-red-500 text-xl"></i>
-                            @elseif($type === 'warning')
-                                <i class="fa-solid fa-circle-exclamation text-amber-500 text-xl"></i>
-                            @else
-                                <i class="fa-solid fa-bell text-blue-600 text-xl"></i>
-                            @endif
-                        </div>
-
-                        <div>
-                            <h3 class="text-base font-bold {{ $isRead ? 'text-gray-700' : 'text-gray-900' }}">
-                                {{ $title }}
-                            </h3>
-                            <p class="text-sm text-gray-600 mt-1 leading-relaxed">{{ $message }}</p>
-                            
-                            <div class="flex items-center gap-4 mt-2 text-xs text-gray-400">
-                                <span class="flex items-center gap-1">
-                                    <i class="far fa-clock"></i>
-                                    {{ $timestamp }}
-                                </span>
-
-                                @if(isset($notif['lat']) && isset($notif['lng']))
-                                    <a href="https://maps.google.com/?q={{ $notif['lat'] }},{{ $notif['lng'] }}" target="_blank" class="text-blue-600 hover:underline flex items-center gap-1 font-normal">
-                                        <i class="fa-solid fa-location-dot"></i> Lihat Lokasi Peta
-                                    </a>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ACTION BUTTONS -->
-                    <div class="flex items-center gap-1 shrink-0">
-                        @if(!$isRead)
-                            <form action="{{ route('notifications.read', ['idPerangkat' => $idPerangkat, 'pushId' => $pushId]) }}" method="POST">
-                                @csrf
-                                <button type="submit" title="Tandai Dibaca" class="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-100/50 transition">
-                                    <i class="fa-solid fa-check"></i>
-                                </button>
-                            </form>
-                        @endif
-
-                        <form action="{{ route('notifications.destroy', ['idPerangkat' => $idPerangkat, 'pushId' => $pushId]) }}" method="POST" onsubmit="return confirm('Hapus notifikasi ini?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" title="Hapus Notifikasi" class="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-100/50 transition">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </form>
-                    </div>
-
-                </div>
-            @empty
-                <div class="p-12 text-center text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                    <i class="fa-solid fa-bell-slash text-4xl mb-3 text-gray-300 block"></i>
-                    Belum ada notifikasi masuk.
-                </div>
-            @endforelse
-        </div>
-
-    </div>
-
-</div> --}}
-
-{{-- end isi awal --}}
-
-
-{{-- coba isi awal --}}
-
 <div class="main-content">
-    
     <div class="topbar">
         <div>
             <h1>Pusat Notifikasi</h1>

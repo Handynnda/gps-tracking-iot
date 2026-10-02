@@ -55,13 +55,13 @@
             @endif
         </li>
 
-        <li>
-            @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
+        @if(session('user_data.email') === 'handynandaf@gmail.com')
+            <li>
                 <a href="{{ route('perangkat.index') }}">
                     <span>Kelola Perangkat</span>
                 </a>
-            @endif
-        </li>
+            </li>
+        @endif
 
         <li>
             @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')

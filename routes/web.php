@@ -3,11 +3,13 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\GpsController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\PerangkatController; // Import PerangkatController
 use App\Http\Middleware\NoCache;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\NotificationController;
 use App\Services\NotificationService;
+
 
 Route::get('/tes-email', function () {
     // Ambil data user dari session
@@ -74,12 +76,12 @@ Route::middleware([NoCache::class])->group(function () {
         ]);
     })->name('notifikasi.index');
 
-    Route::get('/perangkat', function () {
-        if (!session()->has('is_logged_in')) {
-            return redirect()->route('login');
-        }
-        return view('perangkat');
-    })->name('perangkat.index');
+    // --- RUTE KELOLA PERANGKAT ---
+    Route::get('/kelola-perangkat', [PerangkatController::class, 'index'])->name('perangkat.index');
+    Route::post('/kelola-perangkat', [PerangkatController::class, 'store'])->name('perangkat.store');
+    Route::put('/kelola-perangkat/{idPerangkat}', [PerangkatController::class, 'update'])->name('perangkat.update');
+    Route::delete('/kelola-perangkat/{idPerangkat}', [PerangkatController::class, 'destroy'])->name('perangkat.destroy');
+    Route::post('/kelola-perangkat/pilih', [PerangkatController::class, 'setActive'])->name('perangkat.setActive');
 
     Route::get('/history', function () {
         if (!session()->has('is_logged_in')) {

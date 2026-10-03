@@ -19,7 +19,6 @@ class NotificationService
     ): void {
         $firebaseDbUrl = env('FIREBASE_DATABASE_URL');
 
-        // 1. Simpan ke Firebase Realtime DB (/GPS_TRACKING/NOTIFIKASI_LOG/{id_perangkat})
         if ($firebaseDbUrl && $idPerangkat) {
             try {
                 Http::post(rtrim($firebaseDbUrl, '/') . "/GPS_TRACKING/NOTIFIKASI_LOG/{$idPerangkat}.json", [
@@ -33,7 +32,6 @@ class NotificationService
             }
         }
 
-        // 2. Kirim Email Notifikasi (jika ada email)
         if ($userEmail) {
             try {
                 Mail::to($userEmail)->send(

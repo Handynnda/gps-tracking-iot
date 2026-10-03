@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 class PerangkatController extends Controller
 {
     private string $firebasePath = 'GPS_TRACKING/PERANGKAT';
+    private string $geofencePath = 'GPS_TRACKING/GEOFENCE';
 
     private function getFirebaseUrl(): string
     {
@@ -23,15 +24,28 @@ class PerangkatController extends Controller
         $activeId = session('id_perangkat', 'GPS001');
 
         try {
-            $response = Http::withoutVerifying()->get("{$baseUrl}/{$this->firebasePath}.json");
+            // 1. Ambil data dari node PERANGKAT dan node GEOFENCE sekaligus
+            $responsePerangkat = Http::withoutVerifying()->get("{$baseUrl}/{$this->firebasePath}.json");
+            $responseGeofence  = Http::withoutVerifying()->get("{$baseUrl}/{$this->geofencePath}.json");
 
-            if ($response->successful() && !empty($response->json())) {
-                $raw = $response->json();
-                foreach ($raw as $key => $value) {
+            $rawPerangkat = $responsePerangkat->successful() ? ($responsePerangkat->json() ?? []) : [];
+            $rawGeofence  = $responseGeofence->successful() ? ($responseGeofence->json() ?? []) : [];
+
+            if (!empty($rawPerangkat) && is_array($rawPerangkat)) {
+                foreach ($rawPerangkat as $key => $value) {
                     if ($key === 'AKUN' || !is_array($value)) {
                         continue;
                     }
+
                     $value['id_perangkat'] = $key;
+
+                    // Prioritaskan radius dari node GEOFENCE agar sama dengan menu Ubah Koordinat
+                    if (isset($rawGeofence[$key]['radius'])) {
+                        $value['radius_geofencing'] = $rawGeofence[$key]['radius'];
+                    } else {
+                        $value['radius_geofencing'] = $value['radius_geofencing'] ?? 100;
+                    }
+
                     $perangkatList[] = $value;
                 }
             }
@@ -53,27 +67,36 @@ class PerangkatController extends Controller
 
         $baseUrl = $this->getFirebaseUrl();
         $idPerangkat = trim($request->input('id_perangkat'));
-        $urlTarget = "{$baseUrl}/{$this->firebasePath}/{$idPerangkat}.json";
+        $urlTargetPerangkat = "{$baseUrl}/{$this->firebasePath}/{$idPerangkat}.json";
+        $urlTargetGeofence  = "{$baseUrl}/{$this->geofencePath}/{$idPerangkat}.json";
 
         try {
-            $existingData = Http::withoutVerifying()->get($urlTarget)->json();
+            $existingData = Http::withoutVerifying()->get($urlTargetPerangkat)->json();
+            $radius = (float) $request->input('radius_geofencing');
 
-            $payload = [
+            $payloadPerangkat = [
                 'nama_kendaraan'    => $request->input('nama_kendaraan'),
                 'plat_nomor'        => strtoupper($request->input('plat_nomor')),
-                'radius_geofencing' => (float) $request->input('radius_geofencing'),
+                // 'radius_geofencing' => $radius,
             ];
 
             if (empty($existingData)) {
-                $payload['jarak']   = 0;
-                $payload['lat']     = 0.0;
-                $payload['lng']     = 0.0;
-                $payload['relay']   = "OFF";
-                $payload['satelit'] = 0;
-                $payload['status']  = "MEMPROSES LOKASI";
+                $payloadPerangkat['jarak']   = 0;
+                $payloadPerangkat['lat']     = 0.0;
+                $payloadPerangkat['lng']     = 0.0;
+                $payloadPerangkat['relay']   = "OFF";
+                $payloadPerangkat['satelit'] = 0;
+                $payloadPerangkat['status']  = "MEMPROSES LOKASI";
             }
 
-            $response = Http::withoutVerifying()->patch($urlTarget, $payload);
+            // Simpan ke node PERANGKAT
+            $response = Http::withoutVerifying()->patch($urlTargetPerangkat, $payloadPerangkat);
+
+            // Inisialisasi/Sinkronkan ke node GEOFENCE
+            Http::withoutVerifying()->patch($urlTargetGeofence, [
+                'radius'     => $radius,
+                'updated_at' => now()->toISOString(),
+            ]);
 
             if ($response->successful()) {
                 session(['id_perangkat' => $idPerangkat]);
@@ -87,7 +110,6 @@ class PerangkatController extends Controller
         }
     }
 
-    // Tambahkan string $idPerangkat di bawah ini:
     public function update(Request $request, string $idPerangkat)
     {
         $request->validate([
@@ -97,16 +119,26 @@ class PerangkatController extends Controller
         ]);
 
         $baseUrl = $this->getFirebaseUrl();
-        $urlTarget = "{$baseUrl}/{$this->firebasePath}/{$idPerangkat}.json";
+        $urlTargetPerangkat = "{$baseUrl}/{$this->firebasePath}/{$idPerangkat}.json";
+        $urlTargetGeofence  = "{$baseUrl}/{$this->geofencePath}/{$idPerangkat}.json";
 
-        $payload = [
+        $radius = (float) $request->input('radius_geofencing');
+
+        $payloadPerangkat = [
             'nama_kendaraan'    => $request->input('nama_kendaraan'),
             'plat_nomor'        => strtoupper($request->input('plat_nomor')),
-            'radius_geofencing' => (float) $request->input('radius_geofencing'),
+            // 'radius_geofencing' => $radius,
         ];
 
         try {
-            $response = Http::withoutVerifying()->patch($urlTarget, $payload);
+            // Update node PERANGKAT
+            $response = Http::withoutVerifying()->patch($urlTargetPerangkat, $payloadPerangkat);
+
+            // Sinkronkan juga nilai radius ke node GEOFENCE
+            Http::withoutVerifying()->patch($urlTargetGeofence, [
+                'radius'     => $radius,
+                'updated_at' => now()->toISOString(),
+            ]);
 
             if ($response->successful()) {
                 return back()->with('status', "Data perangkat '{$idPerangkat}' berhasil diperbarui!");
@@ -119,7 +151,6 @@ class PerangkatController extends Controller
         }
     }
 
-    // Tambahkan string $idPerangkat di bawah ini:
     public function destroy(string $idPerangkat)
     {
         $baseUrl = $this->getFirebaseUrl();

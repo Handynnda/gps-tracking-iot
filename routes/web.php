@@ -1,49 +1,31 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\GpsController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\PerangkatController; // Import PerangkatController
+use App\Http\Controllers\PerangkatController;
 use App\Http\Middleware\NoCache;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\NotificationController;
 use App\Services\NotificationService;
+use App\Http\Controllers\GpsDataController;
 
+Route::post('/gps/update', [GpsDataController::class, 'store']);
 
-Route::get('/tes-email', function () {
-    // Ambil data user dari session
-    $userData = session('user_data');
-    
-    // Ambil id_perangkat (atau gunakan ID default/dummy jika belum ada di session)
-    $idPerangkat = is_array($userData) 
-        ? ($userData['id_perangkat'] ?? 'perangkat_1') 
-        : ($userData->id_perangkat ?? 'perangkat_1');
+Route::get('/test-notif', function () {
+    $idPerangkat = 'GPS001'; // Ganti dengan ID perangkat yang sesuai
+    $pesan = "Pelanggaran Zona Geofencing! {$idPerangkat} terdeteksi keluar dari radius lokasi aman.";
 
-    $userEmail = is_array($userData) 
-        ? ($userData['email'] ?? null) 
-        : ($userData->email ?? null);
-
-    // Jika di session belum ada email, masukkan email aktif kamu
-    if (!$userEmail) {
-        $userEmail = 'handynandaf@gmail.com';
-    }
-
-    // Koordinat contoh area Kuningan (-6.9772, 108.4831)
-    $lat = -6.9772;
-    $lng = 108.4831;
-
-    // Kirim notifikasi sesuai signature method NotificationService terbaru
     NotificationService::send(
         idPerangkat: $idPerangkat,
-        pesanNotifikasi: 'Pelanggaran Zona Geofencing! Kendaraan terdeteksi keluar dari radius lokasi aman.',
+        pesanNotifikasi: $pesan,
         tipeNotifikasi: 'danger',
-        userEmail: $userEmail,
-        lat: $lat,
-        lng: $lng
+        userEmail: 'handynandaf@gmail.com', // ganti dengan email kamu
+        lat: -6.9772,
+        lng: 108.4831
     );
 
-    return "Berhasil! Notifikasi dikirim untuk ID Perangkat: <b>{$idPerangkat}</b> dan email dikirim ke: <b>{$userEmail}</b>. Silakan cek Inbox Gmail dan node <code>/GPS_TRACKING/NOTIFIKASI_LOG/{$idPerangkat}</code> di Firebase!";
+    return 'Notifikasi berhasil dikirim!';
 });
 
 Route::middleware([NoCache::class])->group(function () {
@@ -61,17 +43,12 @@ Route::middleware([NoCache::class])->group(function () {
         return view('dashboard', compact('user'));
     })->name('dashboard');
 
-    
     Route::get('/notifikasi', function () {
-        // 1. Ambil ID perangkat (misal dari session atau default)
         $idPerangkat = session('id_perangkat', 'perangkat_1'); 
+        $notifications = [];
 
-        // 2. Ambil data dari Firebase (sesuaikan dengan method/helper Firebase kamu)
-        $notifications = []; // Misal: FirebaseService::getNotifications($idPerangkat);
-
-        // 3. Kirim data ke View Notifikasi
         return view('notifikasi', [
-            'notifications' => $notifications ?? [], // Kuncinya ada di '?? []' agar tidak error null
+            'notifications' => $notifications ?? [],
             'idPerangkat'   => $idPerangkat,
         ]);
     })->name('notifikasi.index');
@@ -128,21 +105,13 @@ Route::middleware([NoCache::class])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    Route::resource('gps', GpsController::class);
-    Route::resource('users', UserController::class);
+    Route::resource('gps', GpsDataController::class);
 
-    Route::get('/register', [App\Http\Controllers\Auth\RegisteredUserController::class, 'create'])->name('register');
-    Route::post('/register', [App\Http\Controllers\Auth\RegisteredUserController::class, 'store']);
-
-    // Route::get('/register', function () {
-
-    //     if (!session()->has('is_logged_in')) {
-    //         return redirect()->route('login');
-    //     }
-
-    //     return view('auth.register');
-
-    // })->name('register');
+    // --- MANAJEMEN USER (REGISTER, UPDATE, DELETE) ---
+    Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
+    Route::post('/register', [RegisteredUserController::class, 'store']);
+    Route::put('/users/{id}', [RegisteredUserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{id}', [RegisteredUserController::class, 'destroy'])->name('users.destroy');
 });
 
 require __DIR__.'/auth.php';

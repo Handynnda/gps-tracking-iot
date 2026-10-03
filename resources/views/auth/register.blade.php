@@ -101,7 +101,6 @@
                 <i class="fas fa-user-plus text-blue-600 mr-2"></i> Form Registrasi Akun
             </h2>
 
-            <!-- Form dibuat berjejer 2 kolom untuk menghemat ruang vertikal -->
             <form method="POST" action="{{ route('register') }}" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @csrf
 
@@ -140,7 +139,7 @@
                            placeholder="Ulangi password di atas">
                 </div>
 
-                <!-- Tombol Submit (Membentang penuh di bawah form) -->
+                <!-- Tombol Submit -->
                 <div class="md:col-span-2 pt-2">
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition duration-200 shadow-md">
                         <i class="fas fa-check-circle mr-2"></i> Daftarkan Sekarang
@@ -168,7 +167,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($users ?? [] as $id => $user)
+                    @forelse($users ?? [] as $id =>$user)
                         <tr class="bg-white border-b hover:bg-gray-50 transition-colors">
                             <td class="px-6 py-4">{{ $loop->iteration }}</td>
                             <td class="px-6 py-4 font-medium text-gray-900">{{ $user['name'] ?? '-' }}</td>
@@ -179,14 +178,25 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 flex justify-center gap-2">
-                                <a href="#" class="text-white bg-amber-500 hover:bg-amber-600 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors">
+                                <!-- Tombol Edit Memanggil Modal JS -->
+                                {{-- <button type="button" 
+                                        onclick="openEditModal('{{ $id }}', '{{ $user['name'] ?? '' }}', '{{$user['email'] ?? '' }}')"
+                                        class="text-white bg-amber-500 hover:bg-amber-600 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1">
                                     <i class="fas fa-edit"></i> Edit
-                                </a>
+                                </button> --}}
+
+                                <!-- Tombol Edit di Tabel -->
+                                <button type="button" 
+                                        onclick="openEditModal('{{ $id }}', '{{ $user['name'] ?? '' }}', '{{ $user['email'] ?? '' }}', '{{ $user['role'] ?? 'user' }}')"
+                                        class="text-white bg-amber-500 hover:bg-amber-600 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
                                 
-                                <form action="#" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun {{ $user['name'] ?? 'ini' }}?');">
+                                <!-- Form Hapus User -->
+                                <form action="{{ route('users.destroy', $id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun {{ $user['name'] ?? 'ini' }}?');">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors">
+                                    <button type="submit" class="text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1">
                                         <i class="fas fa-trash"></i> Hapus
                                     </button>
                                 </form>
@@ -206,6 +216,87 @@
     </div>
 
 </div>
+
+<!-- MODAL POPUP EDIT USER -->
+<div id="editModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative">
+        <div class="flex justify-between items-center mb-4 border-b pb-3">
+            <h3 class="text-lg font-bold text-gray-800">
+                <i class="fas fa-user-edit text-amber-500 mr-2"></i> Edit Data User
+            </h3>
+            <button type="button" onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+        </div>
+
+        <form id="editUserForm" method="POST" action="">
+            @csrf
+            @method('PUT')
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
+                    <input type="text" id="edit_name" name="name" required
+                           class="w-full border border-gray-300 rounded-md p-2.5 bg-gray-50 outline-none focus:ring focus:ring-blue-200">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Alamat Email</label>
+                    <input type="email" id="edit_email" name="email" required
+                           class="w-full border border-gray-300 rounded-md p-2.5 bg-gray-50 outline-none focus:ring focus:ring-blue-200">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Role / Hak Akses</label>
+                    <select id="edit_role" name="role" required class="w-full border border-gray-300 rounded-md p-2.5 bg-gray-50 outline-none focus:ring focus:ring-blue-200">
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Password Baru <span class="text-xs text-gray-400">(Kosongkan jika tidak diubah)</span>
+                    </label>
+                    <input type="password" name="password" placeholder="Minimal 8 karakter"
+                           class="w-full border border-gray-300 rounded-md p-2.5 bg-gray-50 outline-none focus:ring focus:ring-blue-200">
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" onclick="closeEditModal()" 
+                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-300 transition-colors">
+                    Batal
+                </button>
+                <button type="submit" 
+                        class="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600 transition-colors shadow-sm">
+                    Simpan Perubahan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SCRIPT UNTUK MODAL -->
+<script>
+    function openEditModal(userId, name, email, role) {
+        document.getElementById('edit_name').value = name;
+        document.getElementById('edit_email').value = email;
+        document.getElementById('edit_role').value = role;
+        
+        const form = document.getElementById('editUserForm');
+        form.action = `/users/${userId}`; 
+
+        // Tampilkan modal dengan menghapus 'hidden' dan menambah 'flex'
+        const modal = document.getElementById('editModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeEditModal() {
+        // Sembunyikan modal dengan menghapus 'flex' dan menambah 'hidden'
+        const modal = document.getElementById('editModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+</script>
 
 </body>
 </html>

@@ -37,7 +37,7 @@
         </li>        
         
         @php
-            $idPerangkatSession = session('user_data')['id_perangkat'] ?? session('id_perangkat') ?? 'perangkat_1';
+            $idPerangkatSession = session('user_data')['id_perangkat'] ?? session('id_perangkat') ?? 'GPS001';
         @endphp
         <li>
             <a href="{{ route('notifications.index', $idPerangkatSession) }}" class="...">

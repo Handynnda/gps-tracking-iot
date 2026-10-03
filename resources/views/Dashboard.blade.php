@@ -242,7 +242,7 @@ let marker = L.marker([
 108.584027
 ]).addTo(map);
 
-const gpsRef = ref(db, 'GPS_TRACKING/GPS001');
+const gpsRef = ref(db, 'GPS_TRACKING/PERANGKAT/GPS001');
 
 onValue(gpsRef,(snapshot)=>{
 

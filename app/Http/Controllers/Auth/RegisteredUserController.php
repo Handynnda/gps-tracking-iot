@@ -54,4 +54,47 @@ class RegisteredUserController extends Controller
 
         return back()->with('status', 'User baru berhasil didaftarkan!');
     }
+
+    public function update(Request $request, string $id): RedirectResponse
+    {
+        if (!session('user_data') || session('user_data')['email'] !== 'handynandaf@gmail.com') {
+            return redirect()->route('dashboard');
+        }
+
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255'],
+            'role' => ['required', 'string', 'in:user,admin'], // Validasi role
+            'password' => ['nullable', Rules\Password::defaults()],
+        ]);
+
+        $firebaseUrl = env('FIREBASE_DATABASE_URL') . '/GPS_TRACKING/AKUN/' . $id . '.json';
+
+        $updateData = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'role' => $request->role, // Simpan perubahan role ke Firebase
+            'updated_at' => now()->toDateTimeString(),
+        ];
+
+        if ($request->filled('password')) {
+            $updateData['password'] = Hash::make($request->password);
+        }
+
+        Http::patch($firebaseUrl, $updateData);
+
+        return back()->with('status', 'Data user & role berhasil diperbarui!');
+    }
+
+    public function destroy(string $id): RedirectResponse
+    {
+        if (!session('user_data') || session('user_data')['email'] !== 'handynandaf@gmail.com') {
+            return redirect()->route('dashboard');
+        }
+
+        $firebaseUrl = env('FIREBASE_DATABASE_URL') . '/GPS_TRACKING/AKUN/' . $id . '.json';
+        Http::delete($firebaseUrl);
+
+        return back()->with('status', 'User berhasil dihapus!');
+    }
 }

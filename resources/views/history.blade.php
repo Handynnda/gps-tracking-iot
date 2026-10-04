@@ -219,15 +219,17 @@
     // Fungsi Mengambil Settings Geofence
     async function loadGeofenceSettings(deviceId) {
         try {
-            // Ambil langsung dari node GPS_TRACKING/GEOFENCE/{deviceId}
-            const geofenceSnap = await get(ref(db, `GPS_TRACKING/GEOFENCE/${deviceId}`));
-            
-            if (geofenceSnap.exists()) {
-                const data = geofenceSnap.val();
-                // Mendukung key 'latitude' / 'lat' dan 'longitude' / 'lng'
-                if (data.latitude || data.lat) safeLat = parseFloat(data.latitude || data.lat);
-                if (data.longitude || data.lng) safeLng = parseFloat(data.longitude || data.lng);
-                if (data.radius) safeRadius = parseFloat(data.radius);
+            const settingsSnap = await get(ref(db, 'GPS_TRACKING/SETTINGS'));
+            if (settingsSnap.exists()) {
+                const settingsData = settingsSnap.val();
+                if (settingsData.lat) safeLat = parseFloat(settingsData.lat);
+                if (settingsData.lng) safeLng = parseFloat(settingsData.lng);
+                if (settingsData.radius) safeRadius = parseFloat(settingsData.radius);
+            }
+
+            const devSnap = await get(ref(db, `GPS_TRACKING/PERANGKAT/${deviceId}/radius_geofencing`));
+            if (devSnap.exists()) {
+                safeRadius = parseFloat(devSnap.val());
             }
 
             if (geofenceCircle) map.removeLayer(geofenceCircle);
@@ -299,13 +301,9 @@
             Object.keys(data).forEach((key) => {
                 const point = data[key];
                 
-                // Mendukung baik format 'latitude'/'longitude' maupun 'lat'/'lng'
-                const rawLat = point.latitude ?? point.lat;
-                const rawLng = point.longitude ?? point.lng;
-
-                if (rawLat !== undefined && rawLng !== undefined) {
-                    const lat = parseFloat(rawLat);
-                    const lng = parseFloat(rawLng);
+                if(point.lat && point.lng) {
+                    const lat = parseFloat(point.lat);
+                    const lng = parseFloat(point.lng);
 
                     // Status Geofence
                     const jarakKePusatMeter = hitungJarakHaversine(safeLat, safeLng, lat, lng) * 1000;
@@ -314,6 +312,7 @@
                     const statusBadge = isInsideGeofence
                         ? `<span class="bg-green-100 text-green-700 font-bold px-2.5 py-1 rounded-full text-xs">Aman</span>`
                         : `<span class="bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-full text-xs">Keluar Area</span>`;
+
                     let isJump = false;
 
                     if(lastLat !== null && lastLng !== null) {
@@ -355,6 +354,7 @@
                 allSegments.push(currentSegment);
             }
 
+            // Tampilkan 20 log terakhir agar tabel terisi lebih banyak dan jelas
             if (tableRows.length > 0) {
                 tableBody.innerHTML = tableRows.slice(-20).join('');
             } else {
@@ -387,7 +387,7 @@
                     window.routeMarkers.push(markerMulai, markerBerhenti);
                 });
 
-                // map.fitBounds(routeLine.getBounds(), { padding: [30, 30] });
+                map.fitBounds(routeLine.getBounds(), { padding: [30, 30] });
             }
         });
     }

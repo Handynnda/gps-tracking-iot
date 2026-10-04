@@ -3,14 +3,47 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PerangkatController;
+use Illuminate\Http\Request;
 use App\Http\Middleware\NoCache;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\NotificationController;
 use App\Services\NotificationService;
 use App\Http\Controllers\GpsDataController;
+use Illuminate\Support\Facades\Http;
+
+Route::post('/api/notifikasi/respon', function (Request $request) {
+    $id = $request->input('id_perangkat', 'GPS001');
+    Http::put("https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app/GPS_TRACKING/{$id}/CONTROL/respon_admin.json", true);
+    return back()->with('success', 'Notifikasi ditandai sudah ditangani. Cut-off dibatalkan.');
+})->name('notif.respon');
+
+Route::post('/api/notifikasi/cutoff-manual', function (Request $request) {
+    $id = $request->input('id_perangkat', 'GPS001');
+    Http::put("https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app/GPS_TRACKING/{$id}/CONTROL/cutoff_manual.json", true);
+    return back()->with('success', 'Perintah cut-off manual terkirim ke kendaraan.');
+})->name('notif.cutoffManual');
 
 Route::post('/gps/update', [GpsDataController::class, 'store']);
+
+Route::post('/api/notifikasi/pelanggaran', function (Request $request) {
+    $idPerangkat = $request->input('id_perangkat', 'GPS001');
+    $lat = $request->input('lat');
+    $lng = $request->input('lng');
+    $pesan = "Pelanggaran Zona Geofencing! {$idPerangkat} terdeteksi keluar dari radius lokasi aman.";
+
+    NotificationService::send(
+        idPerangkat: $idPerangkat,
+        pesanNotifikasi: $pesan,
+        tipeNotifikasi: 'danger',
+        userEmail: 'handynandaf@gmail.com',
+        lat: (float) $lat,
+        lng: (float) $lng
+    );
+
+    return response()->json(['status' => 'ok']);
+});
+
 
 Route::get('/test-notif', function () {
     $idPerangkat = 'GPS001'; // Ganti dengan ID perangkat yang sesuai
@@ -40,7 +73,11 @@ Route::middleware([NoCache::class])->group(function () {
         }
         
         $user = session('user_data');
-        return view('dashboard', compact('user'));
+        
+        // Ambil ID Perangkat dari session aktif atau dari data user, fallback ke 'GPS001'
+        $idPerangkat = session('id_perangkat') ?? ($user['id_perangkat'] ?? 'GPS001');
+
+        return view('dashboard', compact('user', 'idPerangkat'));
     })->name('dashboard');
 
     Route::get('/notifikasi', function () {

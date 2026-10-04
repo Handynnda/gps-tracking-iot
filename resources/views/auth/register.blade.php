@@ -14,6 +14,7 @@
 
 <!-- SIDEBAR -->
 <div class="sidebar">
+
     <div class="logo">
         <i class="fas fa-motorcycle"></i>
         <span>GPS Tracking</span>
@@ -32,21 +33,12 @@
             </a>
         </li>        
         
+        @php
+            $idPerangkatSession = session('user_data')['id_perangkat'] ?? session('id_perangkat') ?? 'perangkat_1';
+        @endphp
         <li>
-            <a href="{{ route('notifikasi.index') }}">
+            <a href="{{ route('notifications.index', $idPerangkatSession) }}" class="...">
                 Notifikasi
-            </a>
-        </li>
-
-        <li>
-            <a href="{{ route('lokasi.aman') }}">
-                Ubah Koordinat
-            </a>
-        </li>
-
-        <li>
-            <a href="{{ route('perangkat.index') }}">
-                Kelola Perangkat
             </a>
         </li>
 
@@ -55,6 +47,22 @@
                 Profile
             </a>
         </li>
+
+        <li>
+            @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
+                <a href="{{ route('lokasi.aman') }}">
+                    <span>Ubah Koordinat</span>
+                </a>
+            @endif
+        </li>
+
+        @if(session('user_data.email') === 'handynandaf@gmail.com')
+            <li>
+                <a href="{{ route('perangkat.index') }}">
+                    <span>Kelola Perangkat</span>
+                </a>
+            </li>
+        @endif
 
         <li>
             @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
@@ -69,21 +77,34 @@
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit" class="logout-btn">
-                <i class="fas fa-right-from-bracket"></i> Logout
+                <i class="fas fa-right-from-bracket"></i>
+                Logout
             </button>
         </form>
     </div>
+
 </div>
 
 <!-- CONTENT -->
 <div class="main-content">
-    <div class="topbar">
+    <div class="bg-white rounded-xl p-5 shadow-sm mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-            <h1>Manajemen User</h1>
+            <h1 class="text-xl font-bold text-gray-800">Manajemen User</h1>
+            <p>Daftarkan akun baru dan kelola akun yang sudah ada</p>
         </div>
-        <div class="profile-box">
-            <i class="fas fa-user-circle"></i>
-            {{ session('user_data')['name'] ?? 'Pengguna' }}        
+        
+        <div class="profile-box flex items-center gap-3 bg-gray-50 border border-gray-200 px-4 py-3 rounded-xl">
+            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <i class="fas fa-user text-blue-600"></i>
+            </div>
+            <div>
+                <p class="text-xs text-gray-400 font-medium">
+                    Akun Saat Ini
+                </p>
+                <p class="text-sm font-semibold text-gray-700">
+                    {{ session('user_data')['name'] ?? 'Pengguna' }}
+                </p>
+            </div>
         </div>
     </div>
 

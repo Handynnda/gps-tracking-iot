@@ -84,14 +84,23 @@
 
 <!-- CONTENT -->
 <div class="main-content">
-    <div class="topbar">
+    <div class="bg-white rounded-xl p-5 shadow-sm mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-            <h1>Pengaturan Lokasi Aman</h1>
+            <h1 class="text-xl font-bold text-gray-800">Pengaturan Lokasi Aman</h1>
             <p>Tentukan titik pusat parkir/garasi dan batas radius aman untuk kendaraan Anda</p>
         </div>
-        <div class="profile-box">
-            <i class="fas fa-user-circle"></i>
-            {{ session('user_data')['name'] ?? 'Pengguna' }}        
+        <div class="profile-box flex items-center gap-3 bg-gray-50 border border-gray-200 px-4 py-3 rounded-xl">
+            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <i class="fas fa-user text-blue-600"></i>
+            </div>
+            <div>
+                <p class="text-xs text-gray-400 font-medium">
+                    Akun Saat Ini
+                </p>
+                <p class="text-sm font-semibold text-gray-700">
+                    {{ session('user_data')['name'] ?? 'Pengguna' }}
+                </p>
+            </div>
         </div>
     </div>
 

@@ -93,7 +93,7 @@
 <div class="p-6 space-y-6">
     
     <!-- HEADER KONTEN -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="bg-white rounded-xl p-5 shadow-sm mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
             <h1 class="text-2xl font-bold text-gray-800">Kelola Perangkat GPS</h1>
             <p class="text-sm text-gray-500">Manajemen unit modul ESP32, label kendaraan, dan radius geofencing</p>

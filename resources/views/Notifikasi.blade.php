@@ -6,14 +6,10 @@
     <title>Notifikasi - GPS Tracking</title>
 
     <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
-
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
-<body>
+<body class="bg-gray-50">
 
 <!-- SIDEBAR -->
 <div class="sidebar">
@@ -40,7 +36,7 @@
             $idPerangkatSession = session('user_data')['id_perangkat'] ?? session('id_perangkat') ?? 'GPS001';
         @endphp
         <li>
-            <a href="{{ route('notifications.index', $idPerangkatSession) }}" class="...">
+            <a href="{{ route('notifications.index', $idPerangkatSession) }}">
                 Notifikasi
             </a>
         </li>
@@ -88,22 +84,28 @@
 
 </div>
 
-{{-- isi awal --}}
-
+<!-- MAIN CONTENT -->
 <div class="main-content">
-    <div class="topbar">
+    <div class="bg-white rounded-xl p-5 shadow-sm mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-            <h1>Pusat Notifikasi</h1>
-            <p>Riwayat peringatan geofencing dan status kendaraan</p>
+            <h1 class="text-xl font-bold text-gray-800">Pusat Notifikasi</h1>
+            <p>Riwayat peringatan geofencing seluruh kendaraan terdaftar</p>
         </div>
-        <div class="profile-box">
-            <i class="fas fa-user-circle"></i>
-            @if(is_array(session('user_data')))
-                {{ session('user_data')['name'] ?? 'Pengguna' }}
-            @else
-                {{ session('user_data')->name ?? 'Pengguna' }}
-            @endif        
-        </div>
+            <div class="profile-box flex items-center gap-3 bg-gray-50 border border-gray-200 px-4 py-3 rounded-xl">
+                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <i class="fas fa-user text-blue-600"></i>
+                </div>
+
+                <div>
+                    <p class="text-xs text-gray-400 font-medium">
+                        Akun Saat Ini
+                    </p>
+
+                    <p class="text-sm font-semibold text-gray-700">
+                        {{ session('user_data')['name'] ?? 'Pengguna' }}
+                    </p>
+                </div>
+            </div>
     </div>
 
     <!-- MAIN PANEL -->
@@ -118,7 +120,7 @@
             <!-- Tombol Tandai Semua Dibaca -->
             <div id="btn-read-all-container">
                 @if(!empty($notifications) && count($notifications) > 0)                
-                    <form action="{{ route('notifications.readAll', $idPerangkat) }}" method="POST">
+                    <form action="{{ route('notifications.readAll', $idPerangkat ?? 'all') }}" method="POST">
                         @csrf
                         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition duration-200 shadow-sm flex items-center gap-2">
                             <i class="fa-solid fa-check-double"></i> Tandai Semua Dibaca
@@ -136,7 +138,7 @@
             </div>
         @endif
 
-        <!-- DAFTAR NOTIFIKASI CONTAINER (Real-time target) -->
+        <!-- DAFTAR NOTIFIKASI CONTAINER (Real-time Target) -->
         <div class="space-y-3" id="notification-list">
             @forelse($notifications ?? [] as $notif)
                 @php
@@ -144,8 +146,20 @@
                     $type = $notif['tipe_notifikasi'] ?? $notif['type'] ?? 'info';
                     $message = $notif['pesan_notifikasi'] ?? $notif['message'] ?? 'Tidak ada pesan detail.';
                     $title = $notif['title'] ?? 'Peringatan Geofencing';
-                    $timestamp = $notif['waktu_formatted'] ?? ($notif['created_at'] ?? $notif['timestamp'] ?? '-');
                     $pushId = $notif['id'] ?? '';
+                    $devId = $notif['device_id'] ?? $idPerangkat ?? 'GPS';
+
+                    // PARSING TANGGAL MENTAH ISO-8601 KE WIB RAPI
+                    $rawWaktu = $notif['waktu_formatted'] ?? $notif['created_at'] ?? $notif['waktu'] ?? $notif['timestamp'] ?? null;
+                    if ($rawWaktu && $rawWaktu !== '-') {
+                        try {
+                            $timestamp = \Carbon\Carbon::parse($rawWaktu)->setTimezone('Asia/Jakarta')->translatedFormat('d M Y, H:i') . ' WIB';
+                        } catch (\Exception $e) {
+                            $timestamp = $rawWaktu;
+                        }
+                    } else {
+                        $timestamp = '-';
+                    }
                 @endphp
 
                 <div class="p-4 rounded-xl border transition flex items-start justify-between gap-4 {{ $isRead ? 'bg-gray-50 border-gray-200 text-gray-500' : 'bg-blue-50/50 border-blue-200 text-gray-800 font-medium' }}">
@@ -163,9 +177,16 @@
                         </div>
 
                         <div>
-                            <h3 class="text-base font-bold {{ $isRead ? 'text-gray-700' : 'text-gray-900' }}">
-                                {{ $title }}
-                            </h3>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h3 class="text-base font-bold {{ $isRead ? 'text-gray-700' : 'text-gray-900' }}">
+                                    {{ $title }}
+                                </h3>
+                                <!-- BADGE ID PERANGKAT -->
+                                <span class="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded border border-blue-200 flex items-center gap-1">
+                                    <i class="fas fa-microchip text-[10px]"></i> {{ $devId }}
+                                </span>
+                            </div>
+
                             <p class="text-sm text-gray-600 mt-1 leading-relaxed">{{ $message }}</p>
                             
                             <div class="flex items-center gap-4 mt-2 text-xs text-gray-400">
@@ -186,7 +207,7 @@
                     <!-- ACTION BUTTONS -->
                     <div class="flex items-center gap-1 shrink-0">
                         @if(!$isRead)
-                            <form action="{{ route('notifications.read', ['idPerangkat' => $idPerangkat, 'pushId' =>$pushId]) }}" method="POST">
+                            <form action="{{ route('notifications.read', ['idPerangkat' => $devId, 'pushId' =>$pushId]) }}" method="POST">
                                 @csrf
                                 <button type="submit" title="Tandai Dibaca" class="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-100/50 transition">
                                     <i class="fa-solid fa-check"></i>
@@ -194,7 +215,7 @@
                             </form>
                         @endif
 
-                        <form action="{{ route('notifications.destroy', ['idPerangkat' => $idPerangkat, 'pushId' =>$pushId]) }}" method="POST" onsubmit="return confirm('Hapus notifikasi ini?')">
+                        <form action="{{ route('notifications.destroy', ['idPerangkat' => $devId, 'pushId' =>$pushId]) }}" method="POST" onsubmit="return confirm('Hapus notifikasi ini?')">
                             @csrf
                             @method('DELETE')
                             <button type="submit" title="Hapus Notifikasi" class="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-100/50 transition">
@@ -221,7 +242,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-    // 1. Inisialisasi Firebase Database Client
     const firebaseConfig = {
         databaseURL: "{{ env('FIREBASE_DATABASE_URL') }}"
     };
@@ -230,18 +250,20 @@
         firebase.initializeApp(firebaseConfig);
     }
 
-    const idPerangkat = "{{ $idPerangkat }}";
     const csrfToken = "{{ csrf_token() }}";
-    const readAllUrl = "{{ route('notifications.readAll', $idPerangkat) }}";
-    const dbRef = firebase.database().ref(`GPS_TRACKING/NOTIFIKASI_LOG/${idPerangkat}`);
+    const readAllUrl = "{{ route('notifications.readAll', 'all') }}";
+    
+    // LISTENER KE PARENT NODE: GPS_TRACKING/NOTIFIKASI_LOG (Mencakup semua perangkat)
+    const dbRef = firebase.database().ref('GPS_TRACKING/NOTIFIKASI_LOG');
 
-    // Helper untuk Format Waktu ke WIB
     function formatTimeWib(rawTime) {
         if (!rawTime || rawTime === '-') return '-';
+
         try {
+            // new Date() otomatis mendukung format ISO "2026-10-05T03:57:55+07:00"
             const date = new Date(rawTime);
             if (isNaN(date.getTime())) return rawTime;
-            
+
             return new Intl.DateTimeFormat('id-ID', {
                 day: '2-digit',
                 month: 'short',
@@ -255,20 +277,18 @@
         }
     }
 
-    // 2. Listen Perubahan Data Real-time dari Firebase
     let initialLoad = true;
     dbRef.on('value', (snapshot) => {
-        // Biarkan load pertama menggunakan Blade SSR agar rendering awal instan
         if (initialLoad) {
             initialLoad = false;
             return;
         }
 
-        const data = snapshot.val();
+        const dataAll = snapshot.val();
         const container = document.getElementById('notification-list');
         const btnContainer = document.getElementById('btn-read-all-container');
 
-        if (!data || Object.keys(data).length === 0) {
+        if (!dataAll || Object.keys(dataAll).length === 0) {
             container.innerHTML = `
                 <div class="p-12 text-center text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-300">
                     <i class="fa-solid fa-bell-slash text-4xl mb-3 text-gray-300 block"></i>
@@ -278,7 +298,42 @@
             return;
         }
 
-        // Render Ulang Tombol "Tandai Semua Dibaca" jika ada data
+        // Kumpulkan semua notifikasi dari setiap sub-node perangkat (GPS001, GPS002, dll)
+        let items = [];
+        Object.keys(dataAll).forEach(deviceId => {
+            const deviceLogs = dataAll[deviceId];
+            if (deviceLogs && typeof deviceLogs === 'object') {
+                Object.keys(deviceLogs).forEach(pushId => {
+                    const item = deviceLogs[pushId];
+                    if (item && typeof item === 'object') {
+                        items.push({
+                            id: pushId,
+                            device_id: deviceId,
+                            ...item
+                        });
+                    }
+                });
+            }
+        });
+
+        if (items.length === 0) {
+            container.innerHTML = `
+                <div class="p-12 text-center text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                    <i class="fa-solid fa-bell-slash text-4xl mb-3 text-gray-300 block"></i>
+                    Belum ada notifikasi masuk.
+                </div>`;
+            if (btnContainer) btnContainer.innerHTML = '';
+            return;
+        }
+
+        // Urutkan dari waktu yang paling baru
+        items.sort((a, b) => {
+            const timeA = new Date(a.created_at || a.waktu || a.timestamp || 0).getTime();
+            const timeB = new Date(b.created_at || b.waktu || b.timestamp || 0).getTime();
+            return timeB - timeA;
+        });
+
+        // Render Ulang Tombol Tandai Semua Dibaca jika ada data
         if (btnContainer && !btnContainer.innerHTML.trim()) {
             btnContainer.innerHTML = `
                 <form action="${readAllUrl}" method="POST">
@@ -289,12 +344,6 @@
                 </form>`;
         }
 
-        // Urutkan data dari yang paling baru
-        const items = Object.keys(data).map(key => ({
-            id: key,
-            ...data[key]
-        })).reverse();
-
         let htmlContent = '';
 
         items.forEach(item => {
@@ -304,8 +353,8 @@
             const title = item.title || 'Peringatan Geofencing';
             const timestamp = formatTimeWib(item.created_at || item.waktu || '-');
             const pushId = item.id;
+            const itemDeviceId = item.device_id || 'GPS';
 
-            // Icon berdasarkan Tipe
             let iconHtml = '<i class="fa-solid fa-bell text-blue-600 text-xl"></i>';
             if (type === 'danger') {
                 iconHtml = '<i class="fa-solid fa-triangle-exclamation text-red-500 text-xl"></i>';
@@ -313,11 +362,10 @@
                 iconHtml = '<i class="fa-solid fa-circle-exclamation text-amber-500 text-xl"></i>';
             }
 
-            // Tombol Mark Read
             let markReadBtn = '';
             if (!isRead) {
                 markReadBtn = `
-                    <form action="/notifikasi/${idPerangkat}/${pushId}/read" method="POST">
+                    <form action="/notifikasi/${itemDeviceId}/${pushId}/read" method="POST">
                         <input type="hidden" name="_token" value="${csrfToken}">
                         <button type="submit" title="Tandai Dibaca" class="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-100/50 transition">
                             <i class="fa-solid fa-check"></i>
@@ -325,7 +373,6 @@
                     </form>`;
             }
 
-            // Link Lokasi Peta jika ada koordinat
             let locationHtml = '';
             if (item.lat && item.lng) {
                 locationHtml = `
@@ -346,9 +393,15 @@
                             ${iconHtml}
                         </div>
                         <div>
-                            <h3 class="text-base font-bold ${titleStyle}">
-                                ${title}
-                            </h3>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h3 class="text-base font-bold ${titleStyle}">
+                                    ${title}
+                                </h3>
+                                <span class="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded border border-blue-200 flex items-center gap-1">
+                                    <i class="fas fa-microchip text-[10px]"></i> ${itemDeviceId}
+                                </span>
+                            </div>
+
                             <p class="text-sm text-gray-600 mt-1 leading-relaxed">${message}</p>
                             
                             <div class="flex items-center gap-4 mt-2 text-xs text-gray-400">
@@ -363,7 +416,7 @@
 
                     <div class="flex items-center gap-1 shrink-0">
                         ${markReadBtn}
-                        <form action="/notifikasi/${idPerangkat}/${pushId}" method="POST" onsubmit="return confirm('Hapus notifikasi ini?')">
+                        <form action="/notifikasi/${itemDeviceId}/${pushId}" method="POST" onsubmit="return confirm('Hapus notifikasi ini?')">
                             <input type="hidden" name="_token" value="${csrfToken}">
                             <input type="hidden" name="_method" value="DELETE">
                             <button type="submit" title="Hapus Notifikasi" class="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-100/50 transition">
@@ -376,107 +429,6 @@
 
         container.innerHTML = htmlContent;
     });
-</script>
-
-{{-- end coba isi awal --}}
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-<script type="module">
-
-import { initializeApp }
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-    getDatabase,
-    ref,
-    onValue
-}
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-const firebaseConfig = {
-
-    apiKey: "ISI_API_KEY",
-
-    databaseURL:
-    "https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app",
-
-    projectId: "gps-tracking-6ba6f",
-
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-const map = L.map('map').setView([-6.862989,108.584027],15);
-
-L.tileLayer(
-'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-{
-maxZoom:19
-}
-).addTo(map);
-
-let marker = L.marker([
--6.862989,
-108.584027
-]).addTo(map);
-
-const gpsRef = ref(db, 'GPS_TRACKING/GPS001');
-
-onValue(gpsRef,(snapshot)=>{
-
-const data = snapshot.val();
-
-if(!data) return;
-
-document.getElementById("lat").innerText =
-data.lat ?? 0;
-
-document.getElementById("lng").innerText =
-data.lng ?? 0;
-
-document.getElementById("jarak").innerText =
-Math.round(data.jarak ?? 0);
-
-document.getElementById("satelit").innerText =
-data.satelit ?? 0;
-
-document.getElementById("status").innerText =
-data.status ?? "-";
-
-let relayStatus =
-data.jarak > 50000 ? "OFF" : "ON";
-
-document.getElementById("relay")
-.innerText = relayStatus;
-
-let relayIconBg =
-document.getElementById("relay-icon-bg");
-
-if(data.jarak > 500){
-
-relayIconBg.className =
-"icon red";
-
-}else{
-
-relayIconBg.className =
-"icon green";
-
-}
-
-marker.setLatLng([
-data.lat,
-data.lng
-]);
-
-map.panTo([
-data.lat,
-data.lng
-]);
-
-});
-
 </script>
 
 </body>

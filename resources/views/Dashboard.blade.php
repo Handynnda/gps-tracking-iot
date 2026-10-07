@@ -218,32 +218,45 @@
         <!-- PANEL KANAN: TOMBOL AKSI CUT-OFF & INFORMASI KENDARAAN -->
         <div class="space-y-6">
             
-            <!-- CARD KONTROL CUT OFF (Card & Cut-off selalu tampil, tombol Tangani dinamis) -->
+            <!-- CARD KONTROL CUT OFF & NYALAKAN KEMBALI -->
             <div id="action-buttons-card" class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
                 <h3 class="text-sm font-bold text-gray-800 pb-3 border-b border-gray-100 flex items-center gap-2">
-                    <i class="fas fa-power-off text-red-500"></i> Kontrol Engine Cut-Off
+                    <i class="fas fa-power-off text-red-500"></i> Kontrol Engine (Relay)
                 </h3>
 
-                <div class="flex flex-row gap-2 mt-3">
-                    <!-- Tombol Tangani (Hanya muncul saat status KELUAR AREA / BAHAYA) -->
-                    <form action="{{ route('notif.respon') }}" method="POST" class="flex-1" id="form-respon-wrapper" style="display: none;">
-                        @csrf
-                        <input type="hidden" name="id_perangkat" id="input-respon-id" value="GPS001">
-                        <button type="submit"
-                            class="w-full flex items-center justify-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2.5 rounded-lg shadow-sm transition">
-                            <i class="fas fa-check"></i> Tangani
-                        </button>
-                    </form>
-
-                    <!-- Tombol Cut-Off (Selalu Tampil) -->
-                    <form action="{{ route('notif.cutoffManual') }}" method="POST" class="flex-1"
-                        onsubmit="return confirm('Yakin ingin memutus mesin kendaraan sekarang?');">
+                <div class="grid grid-cols-2 gap-2 mt-3">
+                    <!-- Tombol Cut-Off (Ubah Relay jadi OFF) -->
+                    <form action="{{ route('relay.off') }}" method="POST"
+                        onsubmit="return confirm('Yakin ingin mematikan mesin kendaraan (Cut-off)?');">
                         @csrf
                         <input type="hidden" name="id_perangkat" id="input-cutoff-id" value="GPS001">
                         <button type="submit"
-                            class="w-full flex items-center justify-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-2.5 rounded-lg shadow-sm transition">
+                            class="w-full flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2.5 rounded-lg shadow-sm transition">
                             <i class="fas fa-power-off"></i> Cut-off
                         </button>
+                    </form>
+
+                    <!-- Tombol Nyalakan Kembali (Ubah Relay jadi ON) -->
+                    <form action="{{ route('relay.on') }}" method="POST"
+                        onsubmit="return confirm('Yakin ingin menyalakan kembali mesin kendaraan?');">
+                        @csrf
+                        <input type="hidden" name="id_perangkat" id="input-resume-id" value="GPS001">
+                        <button type="submit"
+                            class="w-full flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2.5 rounded-lg shadow-sm transition">
+                            <i class="fas fa-check-circle"></i> Nyalakan
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Tombol Tangani Notifikasi (Muncul saat luar area) -->
+                <div class="mt-2" id="form-respon-wrapper" style="display: none;">
+                    <form action="{{ route('notif.respon') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="id_perangkat" id="input-respon-id" value="GPS001">
+                        {{-- <button type="submit"
+                            class="w-full flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-sm transition">
+                            <i class="fas fa-check"></i> Tangani Peringatan
+                        </button> --}}
                     </form>
                 </div>
             </div>
@@ -379,7 +392,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
-    apiKey: "ISI_API_KEY",
+    apiKey: "AIzaSyDyq3zHtWrnQPaalfkwAD4_rkesBTicj0k",
     databaseURL: "https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "gps-tracking-6ba6f",
 };
@@ -468,6 +481,7 @@ if (deviceSelectEl) {
         currentDeviceId = e.target.value;
         document.getElementById('input-respon-id').value = currentDeviceId;
         document.getElementById('input-cutoff-id').value = currentDeviceId;
+        document.getElementById('input-resume-id').value = currentDeviceId; // Diperbarui
         
         resetDashboardState();
         updateDashboardUI();
@@ -504,6 +518,7 @@ function populateDeviceDropdown(perangkatDict) {
 
     document.getElementById('input-respon-id').value = currentDeviceId;
     document.getElementById('input-cutoff-id').value = currentDeviceId;
+    document.getElementById('input-resume-id').value = currentDeviceId; // Diperbarui
 }
 
 const rootGpsRef = ref(db, 'GPS_TRACKING');
@@ -535,13 +550,12 @@ function updateDashboardUI() {
     const satelit = deviceData.satelit || 0;
     const isOut = jarak > currentRadius;
 
-    // --- KONTROL MUNCUL / SEMBUNYI TOMBOL TANGANI SAJA ---
     const formResponWrapper = document.getElementById("form-respon-wrapper");
     if (formResponWrapper) {
         if (isOut) {
-            formResponWrapper.style.display = "block"; // Muncul saat kendaraan di luar area (bahaya)
+            formResponWrapper.style.display = "block";
         } else {
-            formResponWrapper.style.display = "none";  // Disembunyikan saat posisi aman
+            formResponWrapper.style.display = "none";
         }
     }
 

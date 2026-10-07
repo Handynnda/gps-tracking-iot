@@ -12,10 +12,24 @@ use App\Services\NotificationService;
 use App\Http\Controllers\GpsDataController;
 use Illuminate\Support\Facades\Http;
 
+// Route::post('/api/notifikasi/respon', function (Request $request) {
+//     $id = $request->input('id_perangkat', 'GPS001');
+//     Http::put("https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app/GPS_TRACKING/{$id}/CONTROL/respon_admin.json", true);
+//     return back()->with('success', 'Notifikasi ditandai sudah ditangani. Cut-off dibatalkan.');
+// })->name('notif.respon');
+
 Route::post('/api/notifikasi/respon', function (Request $request) {
     $id = $request->input('id_perangkat', 'GPS001');
-    Http::put("https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app/GPS_TRACKING/{$id}/CONTROL/respon_admin.json", true);
-    return back()->with('success', 'Notifikasi ditandai sudah ditangani. Cut-off dibatalkan.');
+    
+    // Update respon_admin jadi true DAN paksa relay jadi ON agar mesin hidup kembali
+    Http::withoutVerifying()->patch("https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app/GPS_TRACKING/PERANGKAT/{$id}.json", [
+        'relay' => 'ON',
+        'updated_at' => now()->toIso8601String(),
+    ]);
+
+    Http::withoutVerifying()->put("https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app/GPS_TRACKING/{$id}/CONTROL/respon_admin.json", true);
+
+    return back()->with('success', 'Peringatan ditandai sudah ditangani dan mesin diaktifkan kembali.');
 })->name('notif.respon');
 
 Route::post('/api/notifikasi/cutoff-manual', function (Request $request) {
@@ -23,6 +37,26 @@ Route::post('/api/notifikasi/cutoff-manual', function (Request $request) {
     Http::put("https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app/GPS_TRACKING/{$id}/CONTROL/cutoff_manual.json", true);
     return back()->with('success', 'Perintah cut-off manual terkirim ke kendaraan.');
 })->name('notif.cutoffManual');
+
+// Rute untuk Cut-off Mesin (Ubah relay jadi OFF)
+Route::post('/api/relay/off', function (Request $request) {
+    $id = $request->input('id_perangkat', 'GPS001');
+    Http::withoutVerifying()->patch("https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app/GPS_TRACKING/PERANGKAT/{$id}.json", [
+        'relay' => 'OFF',
+        'updated_at' => now()->toIso8601String(),
+    ]);
+    return back()->with('success', 'Perintah Cut-off berhasil! Relay dimatikan.');
+})->name('relay.off');
+
+// Rute untuk Nyalakan Kembali Mesin (Ubah relay jadi ON)
+Route::post('/api/relay/on', function (Request $request) {
+    $id = $request->input('id_perangkat', 'GPS001');
+    Http::withoutVerifying()->patch("https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app/GPS_TRACKING/PERANGKAT/{$id}.json", [
+        'relay' => 'ON',
+        'updated_at' => now()->toIso8601String(),
+    ]);
+    return back()->with('success', 'Mesin berhasil dinyalakan kembali! Relay dihidupkan.');
+})->name('relay.on');
 
 Route::post('/gps/update', [GpsDataController::class, 'store']);
 

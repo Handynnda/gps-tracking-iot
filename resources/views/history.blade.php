@@ -114,14 +114,12 @@
 
     <!-- FILTER PERANGKAT & TANGGAL -->
     <div class="mt-6 bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-wrap items-center justify-between gap-4">
-        <!-- Select Perangkat -->
+        <!-- Select Perangkat (Dinamis dari Firebase) -->
         <div class="flex items-center gap-3">
             <i class="fas fa-microchip text-blue-600 text-xl"></i>
             <h2 class="font-bold text-gray-800 text-lg">Pilih Perangkat:</h2>
             <select id="device-select" class="border border-gray-300 rounded-md p-2 shadow-sm focus:ring focus:ring-blue-200 outline-none font-semibold text-gray-700 bg-white">
-                <option value="GPS001" selected>GPS001</option>
-                <option value="GPS002">GPS002</option>
-                <option value="GPS003">GPS003</option>
+                <option value="">Memuat perangkat...</option>
             </select>
         </div>
 
@@ -226,19 +224,64 @@
     }
 
     // Fungsi Mengambil Settings Geofence
+    // async function loadGeofenceSettings(deviceId) {
+    //     try {
+    //         const settingsSnap = await get(ref(db, 'GPS_TRACKING/SETTINGS'));
+    //         if (settingsSnap.exists()) {
+    //             const settingsData = settingsSnap.val();
+    //             if (settingsData.lat) safeLat = parseFloat(settingsData.lat);
+    //             if (settingsData.lng) safeLng = parseFloat(settingsData.lng);
+    //             if (settingsData.radius) safeRadius = parseFloat(settingsData.radius);
+    //         }
+
+    //         const devSnap = await get(ref(db, `GPS_TRACKING/PERANGKAT/${deviceId}/radius_geofencing`));
+    //         if (devSnap.exists()) {
+    //             safeRadius = parseFloat(devSnap.val());
+    //         }
+
+    //         if (geofenceCircle) map.removeLayer(geofenceCircle);
+    //         if (geofenceCenterMarker) map.removeLayer(geofenceCenterMarker);
+
+    //         geofenceCircle = L.circle([safeLat, safeLng], {
+    //             color: '#2563eb',
+    //             fillColor: '#60a5fa',
+    //             fillOpacity: 0.2,
+    //             radius: safeRadius,
+    //             weight: 2,
+    //             dashArray: '6, 6'
+    //         }).addTo(map).bindPopup(`<b>Lokasi Aman / Geofence</b><br>Radius: ${safeRadius} Meter`);
+
+    //         geofenceCenterMarker = L.circleMarker([safeLat, safeLng], {
+    //             radius: 5,
+    //             color: '#1d4ed8',
+    //             fillColor: '#3b82f6',
+    //             fillOpacity: 1
+    //         }).addTo(map).bindPopup("<b>Pusat Lokasi Aman</b>");
+
+    //     } catch (err) {
+    //         console.error("Gagal memuat settings Geofence:", err);
+    //     }
+    // }
+    // Fungsi Mengambil Settings Geofence Berdasarkan Perangkat yang Dipilih
     async function loadGeofenceSettings(deviceId) {
         try {
-            const settingsSnap = await get(ref(db, 'GPS_TRACKING/SETTINGS'));
-            if (settingsSnap.exists()) {
-                const settingsData = settingsSnap.val();
-                if (settingsData.lat) safeLat = parseFloat(settingsData.lat);
-                if (settingsData.lng) safeLng = parseFloat(settingsData.lng);
-                if (settingsData.radius) safeRadius = parseFloat(settingsData.radius);
-            }
+            // Ambil dari jalur GEOFENCE perangkat yang aktif
+            const geofenceRef = ref(db, `GPS_TRACKING/GEOFENCE/${deviceId}`);
+            const geofenceSnap = await get(geofenceRef);
 
-            const devSnap = await get(ref(db, `GPS_TRACKING/PERANGKAT/${deviceId}/radius_geofencing`));
-            if (devSnap.exists()) {
-                safeRadius = parseFloat(devSnap.val());
+            if (geofenceSnap.exists()) {
+                const data = geofenceSnap.val();
+                // Mendukung berbagai variasi penamaan key di database (lat/latitude, lng/longitude, radius)
+                safeLat = parseFloat(data.latitude || data.lat || -6.862989);
+                safeLng = parseFloat(data.longitude || data.lng || 108.584027);
+                safeRadius = parseFloat(data.radius || 500);
+            } else {
+                // Fallback ke data perangkat jika node geofence spesifik belum ada
+                const devSnap = await get(ref(db, `GPS_TRACKING/PERANGKAT/${deviceId}`));
+                if (devSnap.exists()) {
+                    const devData = devSnap.val();
+                    safeRadius = parseFloat(devData.radius_geofencing || 500);
+                }
             }
 
             if (geofenceCircle) map.removeLayer(geofenceCircle);
@@ -251,14 +294,14 @@
                 radius: safeRadius,
                 weight: 2,
                 dashArray: '6, 6'
-            }).addTo(map).bindPopup(`<b>Lokasi Aman / Geofence</b><br>Radius: ${safeRadius} Meter`);
+            }).addTo(map).bindPopup(`<b>Lokasi Aman (${deviceId})</b><br>Radius: ${safeRadius} Meter`);
 
             geofenceCenterMarker = L.circleMarker([safeLat, safeLng], {
                 radius: 5,
                 color: '#1d4ed8',
                 fillColor: '#3b82f6',
                 fillOpacity: 1
-            }).addTo(map).bindPopup("<b>Pusat Lokasi Aman</b>");
+            }).addTo(map).bindPopup(`<b>Pusat Lokasi Aman</b>`);
 
         } catch (err) {
             console.error("Gagal memuat settings Geofence:", err);
@@ -310,9 +353,9 @@
             Object.keys(data).forEach((key) => {
                 const point = data[key];
                 
-                if(point.lat && point.lng) {
-                    const lat = parseFloat(point.lat);
-                    const lng = parseFloat(point.lng);
+                if((point.lat || point.latitude) && (point.lng || point.longitude)) {
+                    const lat = parseFloat(point.lat || point.latitude);
+                    const lng = parseFloat(point.lng || point.longitude);
 
                     // Status Geofence
                     const jarakKePusatMeter = hitungJarakHaversine(safeLat, safeLng, lat, lng) * 1000;
@@ -363,7 +406,6 @@
                 allSegments.push(currentSegment);
             }
 
-            // Tampilkan 20 log terakhir agar tabel terisi lebih banyak dan jelas
             if (tableRows.length > 0) {
                 tableBody.innerHTML = tableRows.slice(-20).join('');
             } else {
@@ -401,7 +443,7 @@
         });
     }
 
-    // ========== EVENT LISTENER FILTER ==========
+    // ========== LOAD DROPDOWN PERANGKAT OTOMATIS DARI FIREBASE ==========
     const dateInput = document.getElementById('history-date');
     const deviceSelect = document.getElementById('device-select');
 
@@ -419,7 +461,37 @@
         }
     }
 
-    triggerLoadHistory();
+    async function loadDeviceDropdown() {
+        try {
+            const perangkatSnap = await get(ref(db, 'GPS_TRACKING/PERANGKAT'));
+            if (perangkatSnap.exists()) {
+                const perangkatData = perangkatSnap.val();
+                deviceSelect.innerHTML = '';
+                
+                let isFirst = true;
+                Object.keys(perangkatData).forEach((deviceId) => {
+                    const option = document.createElement('option');
+                    option.value = deviceId;
+                    option.textContent = deviceId;
+                    if (isFirst) {
+                        option.selected = true;
+                        isFirst = false;
+                    }
+                    deviceSelect.appendChild(option);
+                });
+
+                triggerLoadHistory();
+            } else {
+                deviceSelect.innerHTML = '<option value="">Tidak ada perangkat ditemukan</option>';
+            }
+        } catch (err) {
+            console.error("Gagal memuat daftar perangkat:", err);
+            deviceSelect.innerHTML = '<option value="">Gagal memuat perangkat</option>';
+        }
+    }
+
+    // Jalankan pemuatan dropdown saat pertama kali buka halaman
+    loadDeviceDropdown();
 
     dateInput.addEventListener('change', triggerLoadHistory);
     deviceSelect.addEventListener('change', triggerLoadHistory);

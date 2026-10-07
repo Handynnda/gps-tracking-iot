@@ -118,7 +118,7 @@
             </h2>
             
             <!-- Tombol Tandai Semua Dibaca -->
-            <div id="btn-read-all-container">
+            {{-- <div id="btn-read-all-container">
                 @if(!empty($notifications) && count($notifications) > 0)                
                     <form action="{{ route('notifications.readAll', $idPerangkat ?? 'all') }}" method="POST">
                         @csrf
@@ -127,7 +127,7 @@
                         </button>
                     </form>
                 @endif
-            </div>
+            </div> --}}
         </div>
 
         <!-- ALERT STATUS -->

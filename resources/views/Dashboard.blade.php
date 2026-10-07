@@ -40,7 +40,7 @@
             $idPerangkatSession = session('user_data')['id_perangkat'] ?? session('id_perangkat') ?? 'perangkat_1';
         @endphp
         <li>
-            <a href="{{ route('notifications.index', $idPerangkatSession) }}" class="...">
+            <a href="{{ route('notifications.index', $idPerangkatSession) }}">
                 Notifikasi
             </a>
         </li>
@@ -93,50 +93,32 @@
 
     <!-- TOPBAR / HEADER -->
     <div class="bg-white rounded-xl p-5 shadow-sm mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <!-- JUDUL -->
         <div>
             <h1 class="text-xl font-bold text-gray-800">
                 Sistem Keamanan dan Pelacakan Kendaraan Berbasis IoT
             </h1>
-
             <p class="text-sm text-gray-500 font-medium">
                 Geofencing dengan Algoritma Haversine pada ESP32
             </p>
         </div>
-        <!-- BAGIAN KANAN -->
+
         <div class="flex flex-col items-end gap-2">
-            <!-- ONLINE + JAM -->
             <div class="flex items-center gap-4">
-                <!-- STATUS ONLINE -->
                 <div class="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-full text-xs font-semibold border border-emerald-200">
                     <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                    <span id="conn-status">
-                        Online
-                    </span>
+                    <span id="conn-status">Online</span>
                 </div>
-                <!-- JAM & TANGGAL -->
+
                 <div class="text-right">
-                    <div id="realtime-clock"
-                        class="text-sm font-bold text-gray-700">
-                        --:--:--
-                    </div>
-                    <div id="realtime-date"
-                        class="text-xs text-gray-500">
-                        -- --- ----
-                    </div>
+                    <div id="realtime-clock" class="text-sm font-bold text-gray-700">--:--:--</div>
+                    <div id="realtime-date" class="text-xs text-gray-500">-- --- ----</div>
                 </div>
             </div>
 
-            <!-- DROPDOWN PERANGKAT -->
             <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm">
                 <i class="fas fa-microchip text-blue-600"></i>
-                <label for="device-select" class="text-xs font-bold text-gray-700">
-                    Pilih Perangkat:
-                </label>
-                <select
-                    id="device-select"
-                    class="bg-white border border-gray-300 text-gray-800 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 font-semibold cursor-pointer">
-                    <!-- Opsi terisi otomatis dari Firebase -->
+                <label for="device-select" class="text-xs font-bold text-gray-700">Pilih Perangkat:</label>
+                <select id="device-select" class="bg-white border border-gray-300 text-gray-800 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 font-semibold cursor-pointer">
                     <option value="">Memuat perangkat...</option>
                 </select>
             </div>
@@ -145,8 +127,6 @@
     
     <!-- TOP METRIC CARDS (5 CARD) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        
-        <!-- Latitude -->
         <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
             <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl shrink-0">
                 <i class="fas fa-map-marker-alt"></i>
@@ -158,7 +138,6 @@
             </div>
         </div>
 
-        <!-- Longitude -->
         <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
             <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl shrink-0">
                 <i class="fas fa-location-crosshairs"></i>
@@ -170,7 +149,6 @@
             </div>
         </div>
 
-        <!-- Kecepatan -->
         <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
             <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-xl shrink-0">
                 <i class="fas fa-gauge-high"></i>
@@ -182,7 +160,6 @@
             </div>
         </div>
 
-        <!-- Jarak dari Pusat -->
         <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
             <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center text-xl shrink-0">
                 <i class="fas fa-ruler-combined"></i>
@@ -194,20 +171,16 @@
             </div>
         </div>
 
-        <!-- Status Area -->
         <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
             <div id="status-icon-bg" class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl shrink-0">
                 <i id="status-icon" class="fas fa-shield-check"></i>
             </div>
             <div>
                 <small class="text-xs text-gray-400 font-semibold block uppercase">Status</small>
-                <span id="status-badge" class="inline-block px-2 py-0.5 text-xs font-bold rounded bg-emerald-100 text-emerald-700 mt-0.5">
-                    DALAM AREA
-                </span>
+                <span id="status-badge" class="inline-block px-2 py-0.5 text-xs font-bold rounded bg-emerald-100 text-emerald-700 mt-0.5">DALAM AREA</span>
                 <small id="status-desc" class="text-[10px] text-gray-400 block mt-0.5">Kendaraan Aman</small>
             </div>
         </div>
-
     </div>
 
     <!-- MIDDLE SECTION: MAP (2/3) + INFO PANELS (1/3) -->
@@ -219,16 +192,12 @@
                 <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
                     <i class="fas fa-map-location-dot text-blue-600"></i> Peta Lokasi Kendaraan
                 </h2>
-                <span class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
-                    LIVE
-                </span>
+                <span class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">LIVE</span>
             </div>
 
-            <!-- Leaflet Container -->
             <div class="relative flex-1 min-h-[380px] rounded-lg overflow-hidden border border-gray-200">
                 <div id="map" class="w-full h-full min-h-[380px]"></div>
 
-                <!-- Custom Overlay Legend -->
                 <div class="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm p-3 rounded-lg shadow-md border border-gray-200 text-xs z-[1000] space-y-1.5">
                     <div class="flex items-center gap-2">
                         <span class="w-3 h-3 rounded-full bg-emerald-500 border border-white shadow-sm inline-block"></span>
@@ -246,9 +215,39 @@
             </div>
         </div>
 
-        <!-- PANEL INFORMASI KENDARAAN & STATUS SISI KANAN -->
+        <!-- PANEL KANAN: TOMBOL AKSI CUT-OFF & INFORMASI KENDARAAN -->
         <div class="space-y-6">
             
+            <!-- CARD KONTROL CUT OFF (Card & Cut-off selalu tampil, tombol Tangani dinamis) -->
+            <div id="action-buttons-card" class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                <h3 class="text-sm font-bold text-gray-800 pb-3 border-b border-gray-100 flex items-center gap-2">
+                    <i class="fas fa-power-off text-red-500"></i> Kontrol Engine Cut-Off
+                </h3>
+
+                <div class="flex flex-row gap-2 mt-3">
+                    <!-- Tombol Tangani (Hanya muncul saat status KELUAR AREA / BAHAYA) -->
+                    <form action="{{ route('notif.respon') }}" method="POST" class="flex-1" id="form-respon-wrapper" style="display: none;">
+                        @csrf
+                        <input type="hidden" name="id_perangkat" id="input-respon-id" value="GPS001">
+                        <button type="submit"
+                            class="w-full flex items-center justify-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2.5 rounded-lg shadow-sm transition">
+                            <i class="fas fa-check"></i> Tangani
+                        </button>
+                    </form>
+
+                    <!-- Tombol Cut-Off (Selalu Tampil) -->
+                    <form action="{{ route('notif.cutoffManual') }}" method="POST" class="flex-1"
+                        onsubmit="return confirm('Yakin ingin memutus mesin kendaraan sekarang?');">
+                        @csrf
+                        <input type="hidden" name="id_perangkat" id="input-cutoff-id" value="GPS001">
+                        <button type="submit"
+                            class="w-full flex items-center justify-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-2.5 rounded-lg shadow-sm transition">
+                            <i class="fas fa-power-off"></i> Cut-off
+                        </button>
+                    </form>
+                </div>
+            </div>
+
             <!-- Card Informasi Kendaraan -->
             <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
                 <h3 class="text-sm font-bold text-gray-800 pb-3 border-b border-gray-100 flex items-center gap-2">
@@ -277,9 +276,7 @@
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-gray-400">Status</span>
-                        <span id="info-status-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">
-                            DALAM AREA
-                        </span>
+                        <span id="info-status-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">DALAM AREA</span>
                     </div>
                 </div>
             </div>
@@ -290,17 +287,9 @@
                     <i class="fas fa-shield-halved text-gray-600"></i> Status Sistem Keamanan
                 </h3>
                 <div class="mt-3 space-y-2.5 text-xs text-gray-600">
-                    {{-- <div class="flex justify-between items-center">
-                        <span class="text-gray-400">Alarm</span>
-                        <span id="alarm-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600">
-                            NONAKTIF
-                        </span>
-                    </div> --}}
                     <div class="flex justify-between items-center">
                         <span class="text-gray-400">Relay (Engine Cut Off)</span>
-                        <span id="relay-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">
-                            AKTIF
-                        </span>
+                        <span id="relay-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">AKTIF</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-400">Notifikasi</span>
@@ -308,9 +297,7 @@
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-gray-400">Koneksi IoT</span>
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">
-                            TERHUBUNG
-                        </span>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">TERHUBUNG</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-gray-400">Sinyal GPS</span>
@@ -325,20 +312,15 @@
         </div>
     </div>
 
-    <!-- BOTTOM SECTION: TABEL RIWAYAT + GRAFIK CHARTS + NOTIFIKASI -->
+    <!-- BOTTOM SECTION -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- KOLOM 1: Riwayat Lokasi Terbaru -->
         <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
                     <i class="fas fa-clock-rotate-left text-blue-600"></i> Riwayat Lokasi Terbaru
                 </h3>
-                <a href="{{ route('history.index') }}" class="text-xs text-blue-600 font-semibold hover:underline">
-                    Lihat Semua
-                </a>
+                <a href="{{ route('history.index') }}" class="text-xs text-blue-600 font-semibold hover:underline">Lihat Semua</a>
             </div>
-            
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
@@ -350,15 +332,12 @@
                         </tr>
                     </thead>
                     <tbody id="history-table-body" class="text-xs divide-y divide-gray-50">
-                        <tr>
-                            <td colspan="4" class="py-4 text-center text-gray-400">Memuat data...</td>
-                        </tr>
+                        <tr><td colspan="4" class="py-4 text-center text-gray-400">Memuat data...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- KOLOM 2: Grafik Jarak dari Pusat Geofence (Chart.js) -->
         <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
             <div class="flex justify-between items-center mb-2">
                 <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
@@ -371,17 +350,13 @@
             </div>
         </div>
 
-        <!-- KOLOM 3: Notifikasi Terbaru -->
         <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
                     <i class="fas fa-bell text-amber-500"></i> Notifikasi Terbaru
                 </h3>
-                <a href="{{ route('notifications.index', $idPerangkatSession) }}" class="text-xs text-blue-600 font-semibold hover:underline">
-                    Lihat Semua
-                </a>
+                <a href="{{ route('notifications.index', $idPerangkatSession) }}" class="text-xs text-blue-600 font-semibold hover:underline">Lihat Semua</a>
             </div>
-
             <div id="recent-notifications-list" class="space-y-3">
                 <div class="flex items-start gap-3 p-2 bg-gray-50 rounded-lg">
                     <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full mt-1.5 shrink-0"></span>
@@ -392,9 +367,7 @@
                 </div>
             </div>
         </div>
-
     </div>
-
 </div>
 
 <!-- LEAFLET SCRIPT -->
@@ -414,13 +387,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// --- STATE PENGATURAN PERANGKAT ---
-let currentDeviceId = ""; // ID Perangkat yang sedang aktif
-let historyLog = []; // Penampung riwayat lokal
-let globalPerangkatData = {}; // Cache data PERANGKAT
-let globalGeofenceData = {};  // Cache data GEOFENCE
+let currentDeviceId = ""; 
+let historyLog = []; 
+let globalPerangkatData = {}; 
+let globalGeofenceData = {};  
 
-// --- 1. CLOCK REAL-TIME ---
+// --- CLOCK ---
 function updateClock() {
     const now = new Date();
     const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -434,81 +406,44 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// --- 2. LEAFLET MAP SETUP ---
-// Koordinat awal sementara saat peta pertama kali di-render sebelum data Firebase masuk
+// --- LEAFLET MAP ---
 const initialLat = -6.914732;
 const initialLng = 107.609810;
 const defaultRadius = 50;
 
 const map = L.map('map').setView([initialLat, initialLng], 16);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-}).addTo(map);
-
-// Custom Marker Icons
 const greenCenterIcon = L.divIcon({
     className: 'custom-pin-center',
     html: `<div style="background-color:#10b981; width:18px; height:18px; border-radius:50%; border:3px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3);"></div>`,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9]
+    iconSize: [18, 18], iconAnchor: [9, 9]
 });
 
 const redVehicleIcon = L.divIcon({
     className: 'custom-pin-vehicle',
     html: `<div style="background-color:#ef4444; color:white; width:26px; height:26px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,0.4);"><i class="fas fa-motorcycle text-xs"></i></div>`,
-    iconSize: [26, 26],
-    iconAnchor: [13, 13]
+    iconSize: [26, 26], iconAnchor: [13, 13]
 });
 
 let centerMarker = L.marker([initialLat, initialLng], { icon: greenCenterIcon }).addTo(map);
 let vehicleMarker = L.marker([initialLat, initialLng], { icon: redVehicleIcon }).addTo(map);
+let geofenceCircle = L.circle([initialLat, initialLng], { radius: defaultRadius, color: '#3b82f6', dashArray: '6, 6', fillColor: '#3b82f6', fillOpacity: 0.12, weight: 2 }).addTo(map);
+let distanceLine = L.polyline([[initialLat, initialLng], [initialLat, initialLng]], { color: '#ef4444', dashArray: '4, 4', weight: 2 }).addTo(map);
 
-let geofenceCircle = L.circle([initialLat, initialLng], {
-    radius: defaultRadius,
-    color: '#3b82f6',
-    dashArray: '6, 6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.12,
-    weight: 2
-}).addTo(map);
-
-let distanceLine = L.polyline([[initialLat, initialLng], [initialLat, initialLng]], {
-    color: '#ef4444',
-    dashArray: '4, 4',
-    weight: 2
-}).addTo(map);
-
-// --- 3. CHART.JS SETUP ---
+// --- CHART.JS ---
 const ctx = document.getElementById('geofenceChart').getContext('2d');
 const geofenceChart = new Chart(ctx, {
     type: 'line',
     data: {
         labels: [],
         datasets: [
-            {
-                label: 'Jarak Kendaraan (m)',
-                data: [],
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.3
-            },
-            {
-                label: `Batas Radius (${defaultRadius}m)`,
-                data: [],
-                borderColor: '#ef4444',
-                borderWidth: 1.5,
-                borderDash: [5, 5],
-                pointRadius: 0,
-                fill: false
-            }
+            { label: 'Jarak Kendaraan (m)', data: [], borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 2, fill: true, tension: 0.3 },
+            { label: `Batas Radius (${defaultRadius}m)`, data: [], borderColor: '#ef4444', borderWidth: 1.5, borderDash: [5, 5], pointRadius: 0, fill: false }
         ]
     },
     options: {
-        responsive: true,
-        maintainAspectRatio: false,
+        responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
             x: { grid: { display: false }, ticks: { font: { size: 9 } } },
@@ -517,32 +452,30 @@ const geofenceChart = new Chart(ctx, {
     }
 });
 
-// Reset grafik & tabel riwayat ketika ganti perangkat
 function resetDashboardState() {
     historyLog = [];
     geofenceChart.data.labels = [];
     geofenceChart.data.datasets[0].data = [];
     geofenceChart.data.datasets[1].data = [];
     geofenceChart.update();
-
     const tbody = document.getElementById("history-table-body");
     if (tbody) tbody.innerHTML = `<tr><td colspan="4" class="py-2 text-center text-gray-400">Memuat data...</td></tr>`;
 }
 
-// --- 4. DROPDOWN EVENT LISTENER ---
 const deviceSelectEl = document.getElementById('device-select');
 if (deviceSelectEl) {
     deviceSelectEl.addEventListener('change', (e) => {
         currentDeviceId = e.target.value;
+        document.getElementById('input-respon-id').value = currentDeviceId;
+        document.getElementById('input-cutoff-id').value = currentDeviceId;
+        
         resetDashboardState();
         updateDashboardUI();
     });
 }
 
-// Auto Populate Dropdown dari Firebase
 function populateDeviceDropdown(perangkatDict) {
     if (!deviceSelectEl) return;
-
     const deviceKeys = Object.keys(perangkatDict);
     if (deviceKeys.length === 0) {
         deviceSelectEl.innerHTML = '<option value="">Tidak ada perangkat</option>';
@@ -555,7 +488,6 @@ function populateDeviceDropdown(perangkatDict) {
     deviceKeys.forEach((devId) => {
         const item = perangkatDict[devId] || {};
         const label = item.nama_kendaraan ? `${devId} - ${item.nama_kendaraan}` : devId;
-        
         const opt = document.createElement('option');
         opt.value = devId;
         opt.textContent = label;
@@ -569,11 +501,12 @@ function populateDeviceDropdown(perangkatDict) {
         deviceSelectEl.value = deviceKeys[0];
         currentDeviceId = deviceKeys[0];
     }
+
+    document.getElementById('input-respon-id').value = currentDeviceId;
+    document.getElementById('input-cutoff-id').value = currentDeviceId;
 }
 
-// --- 5. FIREBASE REALTIME DATABASE LISTENER (ROOT GPS_TRACKING) ---
 const rootGpsRef = ref(db, 'GPS_TRACKING');
-
 onValue(rootGpsRef, (snapshot) => {
     const rootData = snapshot.val();
     if (!rootData) return;
@@ -581,43 +514,43 @@ onValue(rootGpsRef, (snapshot) => {
     globalPerangkatData = rootData.PERANGKAT || {};
     globalGeofenceData = rootData.GEOFENCE || {};
 
-    // Populate opsi dropdown berdasarkan node PERANGKAT
     populateDeviceDropdown(globalPerangkatData);
-
-    // Update UI berdasarkan perangkat terpilih
     updateDashboardUI();
 });
 
-// --- 6. FUNGSI UPDATE DASHBOARD UI UTAMA ---
 function updateDashboardUI() {
     if (!currentDeviceId || !globalPerangkatData[currentDeviceId]) return;
 
     const deviceData = globalPerangkatData[currentDeviceId] || {};
     const geofenceData = globalGeofenceData[currentDeviceId] || {};
 
-    // 1. Ambil Titik Pusat Geofence dari GPS_TRACKING/GEOFENCE/{currentDeviceId}
-    //    Jika key di database berupa latitude/longitude atau lat/lng/lokasi_aman_lat
     const centerLat = parseFloat(geofenceData.latitude ?? geofenceData.lat ?? geofenceData.lokasi_aman_lat ?? deviceData.lokasi_aman_lat ?? initialLat);
     const centerLng = parseFloat(geofenceData.longitude ?? geofenceData.lng ?? geofenceData.lokasi_aman_lng ?? deviceData.lokasi_aman_lng ?? initialLng);
     const currentRadius = parseInt(geofenceData.radius ?? geofenceData.radius_geofence ?? deviceData.radius_geofence ?? defaultRadius);
 
-    // 2. Ambil Posisi Kendaraan dari GPS_TRACKING/PERANGKAT/{currentDeviceId}
     const lat = parseFloat(deviceData.lat ?? centerLat);
     const lng = parseFloat(deviceData.lng ?? centerLng);
     const jarak = Math.round(deviceData.jarak || 0);
     const speed = Math.round(deviceData.kecepatan || 0);
     const satelit = deviceData.satelit || 0;
-    const battery = deviceData.baterai || 80;
     const isOut = jarak > currentRadius;
 
-    // Update Top Metric Cards
+    // --- KONTROL MUNCUL / SEMBUNYI TOMBOL TANGANI SAJA ---
+    const formResponWrapper = document.getElementById("form-respon-wrapper");
+    if (formResponWrapper) {
+        if (isOut) {
+            formResponWrapper.style.display = "block"; // Muncul saat kendaraan di luar area (bahaya)
+        } else {
+            formResponWrapper.style.display = "none";  // Disembunyikan saat posisi aman
+        }
+    }
+
     if (document.getElementById("lat")) document.getElementById("lat").innerText = lat.toFixed(6);
     if (document.getElementById("lng")) document.getElementById("lng").innerText = lng.toFixed(6);
     if (document.getElementById("jarak")) document.getElementById("jarak").innerText = jarak;
     if (document.getElementById("speed")) document.getElementById("speed").innerText = speed;
     if (document.getElementById("satelit")) document.getElementById("satelit").innerText = satelit;
 
-    // Update Status Area Card
     const statusBadge = document.getElementById("status-badge");
     const statusIconBg = document.getElementById("status-icon-bg");
     const statusIcon = document.getElementById("status-icon");
@@ -635,12 +568,10 @@ function updateDashboardUI() {
         if (statusDesc) statusDesc.innerText = "Kendaraan Aman";
     }
 
-    // Update Panel Informasi Kendaraan Sisi Kanan
     if (document.getElementById("info-jarak")) document.getElementById("info-jarak").innerText = jarak;
     if (document.getElementById("info-radius")) document.getElementById("info-radius").innerText = currentRadius;
     if (document.getElementById("legend-radius")) document.getElementById("legend-radius").innerText = currentRadius;
-    if (document.getElementById("battery-bar")) document.getElementById("battery-bar").style.width = `${battery}%`;
-    if (document.getElementById("battery-text")) document.getElementById("battery-text").innerText = `${battery}%`;
+    if (document.getElementById("info-id-perangkat")) document.getElementById("info-id-perangkat").innerText = currentDeviceId;
     
     const nowTimeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     if (document.getElementById("info-last-time")) document.getElementById("info-last-time").innerText = nowTimeStr;
@@ -651,7 +582,6 @@ function updateDashboardUI() {
         infoStatusBadge.innerText = isOut ? "LUAR AREA" : "DALAM AREA";
     }
 
-    // Update Panel Keamanan (Relay & Alarm)
     const relayBadge = document.getElementById("relay-badge");
     const relayActive = deviceData.relay === "ON" || deviceData.relay === 1 || !isOut;
     if (relayBadge) {
@@ -659,23 +589,13 @@ function updateDashboardUI() {
         relayBadge.innerText = relayActive ? "AKTIF" : "NONAKTIF";
     }
 
-    const alarmBadge = document.getElementById("alarm-badge");
-    if (alarmBadge) {
-        alarmBadge.className = isOut ? "px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700" : "px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600";
-        alarmBadge.innerText = isOut ? "AKTIF" : "NONAKTIF";
-    }
-
-    // --- UPDATE ELEMEN PETA LEAFLET BERDASARKAN NODE GEOFENCE PERANGKAT ---
     centerMarker.setLatLng([centerLat, centerLng]);
     vehicleMarker.setLatLng([lat, lng]);
     geofenceCircle.setLatLng([centerLat, centerLng]);
     geofenceCircle.setRadius(currentRadius);
     distanceLine.setLatLngs([[centerLat, centerLng], [lat, lng]]);
-    
-    // Peta otomatis berpusat ke lokasi aman (center geofence) perangkat yang dipilih
     map.setView([centerLat, centerLng], 16);
 
-    // Update Chart.js Data Points Real-Time
     if (geofenceChart.data.labels.length > 7) {
         geofenceChart.data.labels.shift();
         geofenceChart.data.datasets[0].data.shift();
@@ -686,13 +606,7 @@ function updateDashboardUI() {
     geofenceChart.data.datasets[1].data.push(currentRadius);
     geofenceChart.update();
 
-    // Update Tabel Riwayat Mini
-    historyLog.unshift({
-        waktu: nowTimeStr,
-        lat: lat.toFixed(5),
-        lng: lng.toFixed(5),
-        jarak: jarak
-    });
+    historyLog.unshift({ waktu: nowTimeStr, lat: lat.toFixed(5), lng: lng.toFixed(5), jarak: jarak });
     if (historyLog.length > 5) historyLog.pop();
 
     const tbody = document.getElementById("history-table-body");
@@ -707,7 +621,6 @@ function updateDashboardUI() {
         `).join('');
     }
 
-    // Update Notifikasi Terbaru List
     const notifContainer = document.getElementById("recent-notifications-list");
     if (notifContainer) {
         if (isOut) {
@@ -718,8 +631,7 @@ function updateDashboardUI() {
                         <p class="text-xs font-semibold text-red-700">Perangkat ${currentDeviceId} keluar geofence (${jarak}m)!</p>
                         <span class="text-[10px] text-red-400">${nowTimeStr} - Peringatan Terkirim</span>
                     </div>
-                </div>
-            `;
+                </div>`;
         } else {
             notifContainer.innerHTML = `
                 <div class="flex items-start gap-3 p-2 bg-emerald-50 rounded-lg border border-emerald-100">
@@ -728,8 +640,7 @@ function updateDashboardUI() {
                         <p class="text-xs font-semibold text-emerald-700">Perangkat ${currentDeviceId} berada dalam area aman (${jarak}m)</p>
                         <span class="text-[10px] text-emerald-500">${nowTimeStr} - Sistem Normal</span>
                     </div>
-                </div>
-            `;
+                </div>`;
         }
     }
 }

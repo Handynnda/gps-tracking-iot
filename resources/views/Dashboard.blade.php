@@ -19,8 +19,10 @@
 <div class="sidebar">
 
     <div class="logo">
-        <i class="fas fa-motorcycle"></i>
-        <span>GPS Tracking</span>
+        <div class="logo-brand">
+            <i class="fas fa-car"></i>
+            <span>GPS Tracking</span>
+        </div>
     </div>
 
     <ul class="menu">
@@ -38,6 +40,10 @@
         
         @php
             $idPerangkatSession = session('user_data')['id_perangkat'] ?? session('id_perangkat') ?? 'perangkat_1';
+            $isOwner = session('user_data') && (
+                (session('user_data')['email'] ?? '') === 'handynandaf@gmail.com' || 
+                strtolower(session('user_data')['role'] ?? '') === 'owner'
+            );
         @endphp
         <li>
             <a href="{{ route('notifications.index', $idPerangkatSession) }}">
@@ -52,28 +58,24 @@
         </li>
 
         <li>
-            @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
-                <a href="{{ route('lokasi.aman') }}">
-                    <span>Ubah Koordinat</span>
-                </a>
-            @endif
+            <a href="{{ route('lokasi.aman') }}">
+                <span>Ubah Koordinat</span>
+            </a>
         </li>
 
-        <li>
-            @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
+        @if($isOwner)
+            <li>
                 <a href="{{ route('perangkat.index') }}">
                     <span>Kelola Perangkat</span>
                 </a>
-            @endif
-        </li>
+            </li>
 
-        <li>
-            @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
+            <li>
                 <a href="{{ route('register') }}">
                     <span>Daftarkan User</span>
                 </a>
-            @endif
-        </li>
+            </li>
+        @endif
     </ul>
 
     <div class="logout-box">
@@ -91,6 +93,24 @@
 <!-- MAIN CONTENT -->
 <div class="main-content p-6">
 
+    <!-- Flash Message Alert -->
+    @if(session('error'))
+        <div class="mb-6 p-4 rounded-xl bg-red-100 text-red-700 border border-red-300 flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-exclamation-circle text-xl"></i>
+                <span class="font-medium text-sm">{{ session('error') }}</span>
+            </div>
+        </div>
+    @endif
+    @if(session('status'))
+        <div class="mb-6 p-4 rounded-xl bg-green-100 text-green-700 border border-green-300 flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-check-circle text-xl"></i>
+                <span class="font-medium text-sm">{{ session('status') }}</span>
+            </div>
+        </div>
+    @endif
+
     <!-- TOPBAR / HEADER -->
     <div class="bg-white rounded-xl p-5 shadow-sm mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -104,8 +124,8 @@
 
         <div class="flex flex-col items-end gap-2">
             <div class="flex items-center gap-4">
-                <div class="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-full text-xs font-semibold border border-emerald-200">
-                    <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                <div id="conn-status-container" class="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-full text-xs font-semibold border border-emerald-200">
+                    <span id="conn-status-dot" class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
                     <span id="conn-status">Online</span>
                 </div>
 
@@ -115,12 +135,16 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm">
-                <i class="fas fa-microchip text-blue-600"></i>
-                <label for="device-select" class="text-xs font-bold text-gray-700">Pilih Perangkat:</label>
-                <select id="device-select" class="bg-white border border-gray-300 text-gray-800 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 font-semibold cursor-pointer">
-                    <option value="">Memuat perangkat...</option>
-                </select>
+            <div class="flex items-center gap-3">
+                <!-- Info Akun & Role Badge -->
+
+                <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm">
+                    <i class="fas fa-microchip text-blue-600"></i>
+                    <label for="device-select" class="text-xs font-bold text-gray-700">Pilih Perangkat:</label>
+                    <select id="device-select" class="bg-white border border-gray-300 text-gray-800 text-xs rounded-md focus:ring-blue-500 focus:border-blue-500 p-1 font-semibold cursor-pointer">
+                        <option value="">Memuat perangkat...</option>
+                    </select>
+                </div>
             </div>
         </div>
     </div>
@@ -197,6 +221,11 @@
 
             <div class="relative flex-1 min-h-[380px] rounded-lg overflow-hidden border border-gray-200">
                 <div id="map" class="w-full h-full min-h-[380px]"></div>
+                <button id="btn-center-route"
+                    class="absolute top-3 right-3 z-[1000] bg-white px-3 py-2 rounded-lg shadow-md text-xs font-semibold text-gray-700 hover:bg-gray-50">
+                    <i class="fas fa-location-crosshairs text-blue-600 mr-1"></i>
+                    Pusatkan Perjalanan
+                </button>
 
                 <div class="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm p-3 rounded-lg shadow-md border border-gray-200 text-xs z-[1000] space-y-1.5">
                     <div class="flex items-center gap-2">
@@ -264,7 +293,7 @@
             <!-- Card Informasi Kendaraan -->
             <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
                 <h3 class="text-sm font-bold text-gray-800 pb-3 border-b border-gray-100 flex items-center gap-2">
-                    <i class="fas fa-motorcycle text-gray-600"></i> Informasi Kendaraan
+                    <i class="fas fa-car text-gray-600"></i> Informasi Kendaraan
                 </h3>
                 <div class="mt-3 space-y-2.5 text-xs text-gray-600">
                     <div class="flex justify-between">
@@ -273,7 +302,7 @@
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-400">Nama Kendaraan</span>
-                        <span class="font-semibold text-gray-800">Motor Pribadi</span>
+                        <span id="info-nama-kendaraan" class="font-semibold text-gray-800">-</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-400">Waktu Terakhir</span>
@@ -310,11 +339,11 @@
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-gray-400">Koneksi IoT</span>
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">TERHUBUNG</span>
+                        <span id="iot-conn-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">TERHUBUNG</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-gray-400">Sinyal GPS</span>
-                        <span class="font-semibold text-gray-800 flex items-center gap-1">
+                        <span id="sinyal-gps-wrapper" class="font-semibold text-gray-800 flex items-center gap-1">
                             <i class="fas fa-satellite text-blue-500"></i>
                             <span id="satelit">0</span> Satelit
                         </span>
@@ -389,7 +418,7 @@
 <!-- FIREBASE MODULE & LOGIC INTEGRATION -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDyq3zHtWrnQPaalfkwAD4_rkesBTicj0k",
@@ -400,10 +429,74 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-let currentDeviceId = ""; 
-let historyLog = []; 
-let globalPerangkatData = {}; 
-let globalGeofenceData = {};  
+let currentDeviceId = "";
+let historyLog = [];
+let globalPerangkatData = {};
+let globalGeofenceData = {};
+
+let lastTs = 0;
+let offlineTimer = null;
+const OFFLINE_TIMEOUT_MS = 8000; // 8 detik (4x siklus pengiriman) tidak ada data = offline
+
+// --- UPDATE STATUS KONEKSI ONLINE/OFFLINE ---
+function updateConnectionStatus(isOnline) {
+    const container = document.getElementById('conn-status-container');
+    const dot       = document.getElementById('conn-status-dot');
+    const text      = document.getElementById('conn-status');
+    const iotBadge  = document.getElementById('iot-conn-badge');
+    const sinyalEl  = document.getElementById('satelit');
+    const sinyalWrapper = document.getElementById('sinyal-gps-wrapper');
+
+    if (isOnline) {
+        // --- Badge koneksi header ---
+        if (container) container.className = 'flex items-center gap-2 bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-full text-xs font-semibold border border-emerald-200';
+        if (dot)       dot.className       = 'w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse';
+        if (text)      text.innerText      = 'Online';
+
+        // --- Badge Koneksi IoT ---
+        if (iotBadge) {
+            iotBadge.className  = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700';
+            iotBadge.innerText  = 'TERHUBUNG';
+        }
+
+        // --- Sinyal GPS: tampil normal ---
+        if (sinyalWrapper) sinyalWrapper.className = 'font-semibold text-gray-800 flex items-center gap-1';
+
+    } else {
+        // --- Badge koneksi header ---
+        if (container) container.className = 'flex items-center gap-2 bg-red-50 text-red-600 px-3 py-1.5 rounded-full text-xs font-semibold border border-red-200';
+        if (dot)       dot.className       = 'w-2.5 h-2.5 bg-red-500 rounded-full';
+        if (text)      text.innerText      = 'Offline';
+
+        // --- Badge Koneksi IoT ---
+        if (iotBadge) {
+            iotBadge.className  = 'px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700';
+            iotBadge.innerText  = 'TERPUTUS';
+        }
+
+        // --- Sinyal GPS: reset ke 0 & warna abu ---
+        if (sinyalEl)     sinyalEl.innerText     = '0';
+        if (sinyalWrapper) sinyalWrapper.className = 'font-semibold text-gray-400 flex items-center gap-1';
+    }
+}
+
+
+function resetOfflineTimer() {
+    if (offlineTimer) clearTimeout(offlineTimer);
+    updateConnectionStatus(true);
+    offlineTimer = setTimeout(() => {
+        updateConnectionStatus(false);
+    }, OFFLINE_TIMEOUT_MS);
+}
+
+
+let currentHistoryRef = null;
+let historyListenerDeviceId = "";
+let autoCenterRoute = false;
+let programmaticMapMove = false;
+let routePoints = [];
+let routeSegments = [];
+let routeMarkers = [];
 
 // --- CLOCK ---
 function updateClock() {
@@ -420,8 +513,8 @@ setInterval(updateClock, 1000);
 updateClock();
 
 // --- LEAFLET MAP ---
-const initialLat = -6.914732;
-const initialLng = 107.609810;
+const initialLat = -6.863045;
+const initialLng = 108.584259;
 const defaultRadius = 50;
 
 const map = L.map('map').setView([initialLat, initialLng], 16);
@@ -439,10 +532,100 @@ const redVehicleIcon = L.divIcon({
     iconSize: [26, 26], iconAnchor: [13, 13]
 });
 
-let centerMarker = L.marker([initialLat, initialLng], { icon: greenCenterIcon }).addTo(map);
-let vehicleMarker = L.marker([initialLat, initialLng], { icon: redVehicleIcon }).addTo(map);
-let geofenceCircle = L.circle([initialLat, initialLng], { radius: defaultRadius, color: '#3b82f6', dashArray: '6, 6', fillColor: '#3b82f6', fillOpacity: 0.12, weight: 2 }).addTo(map);
-let distanceLine = L.polyline([[initialLat, initialLng], [initialLat, initialLng]], { color: '#ef4444', dashArray: '4, 4', weight: 2 }).addTo(map);
+let centerMarker = L.marker([initialLat, initialLng], { 
+    icon: greenCenterIcon 
+}).addTo(map);
+let vehicleMarker = L.marker([initialLat, initialLng], { 
+    icon: redVehicleIcon 
+}).addTo(map);
+let geofenceCircle = L.circle([initialLat, initialLng], { 
+    radius: defaultRadius, 
+    color: '#3b82f6', 
+    dashArray: '6, 6', 
+    fillColor: '#3b82f6', 
+    fillOpacity: 0.12, 
+    weight: 2 
+}).addTo(map);
+let distanceLine = L.polyline([[initialLat, initialLng], [initialLat, initialLng]], { 
+    color: '#ef4444', 
+    dashArray: '4, 4', 
+    weight: 2 
+}).addTo(map);
+// Rute diambil dari GPS_TRACKING/HISTORY agar tetap tersedia
+// walaupun halaman Dashboard baru saja dibuka.
+let routeLine = L.polyline([], {
+    color: '#2563eb',
+    weight: 4,
+    opacity: 0.8,
+    smoothFactor: 1
+}).addTo(map);
+
+function disableAutoCenterFromUser() {
+    if (programmaticMapMove) return;
+    autoCenterRoute = false;
+}
+
+// Begitu user mulai zoom atau menggeser peta secara manual,
+// mode otomatis langsung dimatikan sampai tombol ditekan lagi.
+map.on('zoomstart', disableAutoCenterFromUser);
+map.on('dragstart', disableAutoCenterFromUser);
+
+function fitRouteToMap() {
+    const points = routeLine.getLatLngs();
+
+    if (!points || points.length === 0) {
+        const vehiclePosition = vehicleMarker.getLatLng();
+        if (vehiclePosition) {
+            programmaticMapMove = true;
+            map.once('moveend', () => {
+                programmaticMapMove = false;
+            });
+            map.setView(vehiclePosition, 17, { animate: true });
+            setTimeout(() => {
+                programmaticMapMove = false;
+            }, 1000);
+        }
+        return;
+    }
+
+    if (points.length === 1) {
+        programmaticMapMove = true;
+        map.once('moveend', () => {
+            programmaticMapMove = false;
+        });
+        map.setView(points[0], 17, { animate: true });
+        setTimeout(() => {
+            programmaticMapMove = false;
+        }, 1000);
+        return;
+    }
+
+    const bounds = routeLine.getBounds();
+
+    if (!bounds.isValid()) return;
+
+    programmaticMapMove = true;
+    map.once('moveend', () => {
+        programmaticMapMove = false;
+    });
+
+    map.fitBounds(bounds, {
+        padding: [50, 50],
+        maxZoom: 17,
+        animate: true
+    });
+
+    setTimeout(() => {
+        programmaticMapMove = false;
+    }, 1000);
+}
+
+document.getElementById('btn-center-route').addEventListener('click', () => {
+    // Tombol adalah satu-satunya cara untuk mengaktifkan
+    // kembali auto-center/auto-zoom.
+    autoCenterRoute = true;
+    fitRouteToMap();
+});
 
 // --- CHART.JS ---
 const ctx = document.getElementById('geofenceChart').getContext('2d');
@@ -465,14 +648,41 @@ const geofenceChart = new Chart(ctx, {
     }
 });
 
+function clearRouteMap() {
+    routePoints = [];
+    routeSegments = [];
+
+    if (routeLine) {
+        routeLine.setLatLngs([]);
+    }
+
+    routeMarkers.forEach((marker) => {
+        if (map.hasLayer(marker)) {
+            map.removeLayer(marker);
+        }
+    });
+
+    routeMarkers = [];
+}
+
 function resetDashboardState() {
     historyLog = [];
+    autoCenterRoute = false;
+    clearRouteMap();
+
     geofenceChart.data.labels = [];
     geofenceChart.data.datasets[0].data = [];
     geofenceChart.data.datasets[1].data = [];
     geofenceChart.update();
+
     const tbody = document.getElementById("history-table-body");
-    if (tbody) tbody.innerHTML = `<tr><td colspan="4" class="py-2 text-center text-gray-400">Memuat data...</td></tr>`;
+    if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="4" class="py-2 text-center text-gray-400">Memuat data...</td></tr>`;
+    }
+
+    if (document.getElementById("info-nama-kendaraan")) {
+        document.getElementById("info-nama-kendaraan").innerText = "Memuat...";
+    }
 }
 
 const deviceSelectEl = document.getElementById('device-select');
@@ -482,8 +692,14 @@ if (deviceSelectEl) {
         document.getElementById('input-respon-id').value = currentDeviceId;
         document.getElementById('input-cutoff-id').value = currentDeviceId;
         document.getElementById('input-resume-id').value = currentDeviceId; // Diperbarui
-        
+
+        // Saat ganti perangkat, reset timer dan anggap offline dulu
+        // sampai data baru dari Firebase masuk
+        if (offlineTimer) clearTimeout(offlineTimer);
+        updateConnectionStatus(false);
+
         resetDashboardState();
+        setupHistoryRealtime(currentDeviceId);
         updateDashboardUI();
     });
 }
@@ -501,7 +717,8 @@ function populateDeviceDropdown(perangkatDict) {
 
     deviceKeys.forEach((devId) => {
         const item = perangkatDict[devId] || {};
-        const label = item.nama_kendaraan ? `${devId} - ${item.nama_kendaraan}` : devId;
+        const devName = item.nama_kendaraan || item.nama || (devId === 'GPS001' ? 'TOYOTA AVANZA' : (devId === 'GPS002' ? 'DAIHATSU XENIA' : ''));
+        const label = devName ? `${devId} - ${devName}` : devId;
         const opt = document.createElement('option');
         opt.value = devId;
         opt.textContent = label;
@@ -519,6 +736,175 @@ function populateDeviceDropdown(perangkatDict) {
     document.getElementById('input-respon-id').value = currentDeviceId;
     document.getElementById('input-cutoff-id').value = currentDeviceId;
     document.getElementById('input-resume-id').value = currentDeviceId; // Diperbarui
+
+    if (currentDeviceId !== historyListenerDeviceId) {
+        setupHistoryRealtime(currentDeviceId);
+    }
+}
+
+function getTodayDateKey() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function renderRealtimeHistoryRoute(data) {
+    clearRouteMap();
+
+    if (!data || typeof data !== 'object') {
+        return;
+    }
+
+    let allSegments = [];
+    let currentSegment = [];
+    let lastLat = null;
+    let lastLng = null;
+    const tableRows = [];
+    const pointsForTable = [];
+
+    Object.keys(data).forEach((key) => {
+        const point = data[key] || {};
+        const rawLat = point.lat ?? point.latitude;
+        const rawLng = point.lng ?? point.longitude;
+
+        if (rawLat === undefined || rawLng === undefined) return;
+
+        const lat = parseFloat(rawLat);
+        const lng = parseFloat(rawLng);
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+        // Pisahkan garis jika Firebase menyimpan loncatan lokasi yang terlalu jauh.
+        let isJump = false;
+
+        if (lastLat !== null && lastLng !== null) {
+            const jarakTitikKm = hitungJarakAntarTitik(
+                lastLat,
+                lastLng,
+                lat,
+                lng
+            );
+
+            if (jarakTitikKm > 0.5) {
+                isJump = true;
+            }
+        }
+
+        if (isJump) {
+            if (currentSegment.length > 0) {
+                allSegments.push(currentSegment);
+            }
+            currentSegment = [];
+        }
+
+        currentSegment.push([lat, lng]);
+        pointsForTable.push({
+            waktu: point.waktu || '-',
+            lat,
+            lng,
+            speed: Number(point.speed ?? point.kecepatan ?? 0)
+        });
+
+        lastLat = lat;
+        lastLng = lng;
+    });
+
+    if (currentSegment.length > 0) {
+        allSegments.push(currentSegment);
+    }
+
+    routeSegments = allSegments;
+    routePoints = allSegments.flat();
+
+    if (allSegments.length > 0) {
+        routeLine.setLatLngs(allSegments);
+
+        allSegments.forEach((segment, index) => {
+            if (segment.length === 0) return;
+
+            const titikAwal = segment[0];
+            const titikAkhir = segment[segment.length - 1];
+
+            const markerMulai = L.circleMarker(titikAwal, {
+                radius: 6,
+                color: 'green',
+                fillColor: 'white',
+                fillOpacity: 1
+            }).addTo(map).bindPopup(`<b>Titik Awal</b> (Sesi ${index + 1})`);
+
+            const markerAkhir = L.circleMarker(titikAkhir, {
+                radius: 6,
+                color: 'red',
+                fillColor: 'white',
+                fillOpacity: 1
+            }).addTo(map).bindPopup(`<b>Titik Akhir</b> (Sesi ${index + 1})`);
+
+            routeMarkers.push(markerMulai, markerAkhir);
+        });
+    }
+
+    const tbody = document.getElementById('history-table-body');
+
+    if (tbody) {
+        const rows = pointsForTable.slice(-5).reverse().map((row) => `
+            <tr class="hover:bg-gray-50">
+                <td class="py-2 text-gray-500 font-medium">${row.waktu}</td>
+                <td class="py-2 text-gray-700">${row.lat.toFixed(5)}</td>
+                <td class="py-2 text-gray-700">${row.lng.toFixed(5)}</td>
+                <td class="py-2 text-right font-bold text-gray-800">${Math.round(row.speed)} km/h</td>
+            </tr>
+        `).join('');
+
+        tbody.innerHTML = rows || `
+            <tr>
+                <td colspan="4" class="py-4 text-center text-gray-400">
+                    Belum ada histori perjalanan hari ini.
+                </td>
+            </tr>`;
+    }
+
+    // Hanya auto-fit jika user sebelumnya menekan tombol Pusatkan Perjalanan.
+    // Kalau user sedang bebas zoom/drag, route tetap realtime tetapi kamera diam.
+    if (autoCenterRoute && routePoints.length > 0) {
+        fitRouteToMap();
+    }
+}
+
+function hitungJarakAntarTitik(lat1, lng1, lat2, lng2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+function setupHistoryRealtime(deviceId) {
+    if (!deviceId) return;
+
+    if (currentHistoryRef) {
+        off(currentHistoryRef);
+        currentHistoryRef = null;
+    }
+
+    historyListenerDeviceId = deviceId;
+
+    const tanggalHariIni = getTodayDateKey();
+    currentHistoryRef = ref(
+        db,
+        `GPS_TRACKING/HISTORY/${deviceId}/${tanggalHariIni}`
+    );
+
+    onValue(currentHistoryRef, (snapshot) => {
+        renderRealtimeHistoryRoute(snapshot.val());
+    });
 }
 
 const rootGpsRef = ref(db, 'GPS_TRACKING');
@@ -530,8 +916,20 @@ onValue(rootGpsRef, (snapshot) => {
     globalGeofenceData = rootData.GEOFENCE || {};
 
     populateDeviceDropdown(globalPerangkatData);
+
+    // Cek apakah perangkat yang dipilih memiliki data & timestamp yang baru
+    const d = globalPerangkatData[currentDeviceId];
+    if (d && d.ts && d.ts !== lastTs) {
+        lastTs = d.ts;
+        console.log(`[DELAY] ${currentDeviceId} | Firebase -> Dashboard: ${Date.now() - d.ts} ms`);
+    }
+
+    // Reset timer offline setiap kali Firebase mengirim update
+    resetOfflineTimer();
+
     updateDashboardUI();
 });
+
 
 function updateDashboardUI() {
     if (!currentDeviceId || !globalPerangkatData[currentDeviceId]) return;
@@ -587,6 +985,9 @@ function updateDashboardUI() {
     if (document.getElementById("legend-radius")) document.getElementById("legend-radius").innerText = currentRadius;
     if (document.getElementById("info-id-perangkat")) document.getElementById("info-id-perangkat").innerText = currentDeviceId;
     
+    const namaKendaraan = deviceData.nama_kendaraan || deviceData.nama || (currentDeviceId === 'GPS001' ? 'TOYOTA AVANZA' : (currentDeviceId === 'GPS002' ? 'DAIHATSU XENIA' : currentDeviceId));
+    if (document.getElementById("info-nama-kendaraan")) document.getElementById("info-nama-kendaraan").innerText = namaKendaraan;
+    
     const nowTimeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     if (document.getElementById("info-last-time")) document.getElementById("info-last-time").innerText = nowTimeStr;
 
@@ -608,7 +1009,7 @@ function updateDashboardUI() {
     geofenceCircle.setLatLng([centerLat, centerLng]);
     geofenceCircle.setRadius(currentRadius);
     distanceLine.setLatLngs([[centerLat, centerLng], [lat, lng]]);
-    map.setView([centerLat, centerLng], 16);
+
 
     if (geofenceChart.data.labels.length > 7) {
         geofenceChart.data.labels.shift();
@@ -659,6 +1060,6 @@ function updateDashboardUI() {
     }
 }
 </script>
-
+<script src="{{ asset('js/responsive.js') }}"></script>
 </body>
 </html>

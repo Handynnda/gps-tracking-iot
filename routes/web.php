@@ -114,22 +114,6 @@ Route::middleware([NoCache::class])->group(function () {
         return view('dashboard', compact('user', 'idPerangkat'));
     })->name('dashboard');
 
-    Route::get('/notifikasi', function () {
-        $idPerangkat = session('id_perangkat', 'perangkat_1'); 
-        $notifications = [];
-
-        return view('notifikasi', [
-            'notifications' => $notifications ?? [],
-            'idPerangkat'   => $idPerangkat,
-        ]);
-    })->name('notifikasi.index');
-
-    // --- RUTE KELOLA PERANGKAT ---
-    Route::get('/kelola-perangkat', [PerangkatController::class, 'index'])->name('perangkat.index');
-    Route::post('/kelola-perangkat', [PerangkatController::class, 'store'])->name('perangkat.store');
-    Route::put('/kelola-perangkat/{idPerangkat}', [PerangkatController::class, 'update'])->name('perangkat.update');
-    Route::delete('/kelola-perangkat/{idPerangkat}', [PerangkatController::class, 'destroy'])->name('perangkat.destroy');
-    Route::post('/kelola-perangkat/pilih', [PerangkatController::class, 'setActive'])->name('perangkat.setActive');
 
     Route::get('/history', function () {
         if (!session()->has('is_logged_in')) {
@@ -164,9 +148,12 @@ Route::middleware([NoCache::class])->group(function () {
 
     // Route untuk aksi notifikasi
     Route::get('/notifikasi/{idPerangkat?}', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('/notifikasi/{idPerangkat}/read/{pushId}', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifikasi/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll.all');
     Route::post('/notifikasi/{idPerangkat}/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
-    Route::delete('/notifikasi/{idPerangkat}/delete/{pushId}', [NotificationController::class, 'destroy'])->name('notifications.destroy');    
+    Route::post('/notifikasi/{idPerangkat}/read/{pushId}', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifikasi/{idPerangkat}/{pushId}/read', [NotificationController::class, 'markAsRead']);
+    Route::delete('/notifikasi/{idPerangkat}/delete/{pushId}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::delete('/notifikasi/{idPerangkat}/{pushId}', [NotificationController::class, 'destroy']);
 
     // Rute untuk memproses/menyimpan password baru ke database
     Route::post('/reset-password', [App\Http\Controllers\Auth\NewPasswordController::class, 'store'])
@@ -178,11 +165,21 @@ Route::middleware([NoCache::class])->group(function () {
 
     Route::resource('gps', GpsDataController::class);
 
-    // --- MANAJEMEN USER (REGISTER, UPDATE, DELETE) ---
-    Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
-    Route::post('/register', [RegisteredUserController::class, 'store']);
-    Route::put('/users/{id}', [RegisteredUserController::class, 'update'])->name('users.update');
-    Route::delete('/users/{id}', [RegisteredUserController::class, 'destroy'])->name('users.destroy');
+    // --- HAK AKSES KHUSUS OWNER (FULL AKSES) ---
+    Route::middleware(['owner'])->group(function () {
+        // Kelola Perangkat
+        Route::get('/kelola-perangkat', [PerangkatController::class, 'index'])->name('perangkat.index');
+        Route::post('/kelola-perangkat', [PerangkatController::class, 'store'])->name('perangkat.store');
+        Route::put('/kelola-perangkat/{idPerangkat}', [PerangkatController::class, 'update'])->name('perangkat.update');
+        Route::delete('/kelola-perangkat/{idPerangkat}', [PerangkatController::class, 'destroy'])->name('perangkat.destroy');
+        Route::post('/kelola-perangkat/pilih', [PerangkatController::class, 'setActive'])->name('perangkat.setActive');
+
+        // Manajemen User (Daftarkan User, Edit Role/Password, Hapus)
+        Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
+        Route::post('/register', [RegisteredUserController::class, 'store']);
+        Route::put('/users/{id}', [RegisteredUserController::class, 'update'])->name('users.update');
+        Route::delete('/users/{id}', [RegisteredUserController::class, 'destroy'])->name('users.destroy');
+    });
 });
 
 require __DIR__.'/auth.php';

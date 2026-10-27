@@ -16,8 +16,10 @@
 <div class="sidebar">
 
     <div class="logo">
-        <i class="fas fa-motorcycle"></i>
-        <span>GPS Tracking</span>
+        <div class="logo-brand">
+            <i class="fas fa-car"></i>
+            <span>GPS Tracking</span>
+        </div>
     </div>
 
     <ul class="menu">
@@ -35,6 +37,10 @@
         
         @php
             $idPerangkatSession = session('user_data')['id_perangkat'] ?? session('id_perangkat') ?? 'perangkat_1';
+            $isOwner = session('user_data') && (
+                (session('user_data')['email'] ?? '') === 'handynandaf@gmail.com' || 
+                strtolower(session('user_data')['role'] ?? '') === 'owner'
+            );
         @endphp
         <li>
             <a href="{{ route('notifications.index', $idPerangkatSession) }}" class="...">
@@ -49,28 +55,24 @@
         </li>
 
         <li>
-            @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
-                <a href="{{ route('lokasi.aman') }}">
-                    <span>Ubah Koordinat</span>
-                </a>
-            @endif
+            <a href="{{ route('lokasi.aman') }}">
+                <span>Ubah Koordinat</span>
+            </a>
         </li>
 
-        @if(session('user_data.email') === 'handynandaf@gmail.com')
+        @if($isOwner)
             <li>
                 <a href="{{ route('perangkat.index') }}">
                     <span>Kelola Perangkat</span>
                 </a>
             </li>
-        @endif
 
-        <li>
-            @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
-                <a href="{{ route('register') }}">
+            <li>
+                <a href="{{ route('register') }}" class="active">
                     <span>Daftarkan User</span>
                 </a>
-            @endif
-        </li>
+            </li>
+        @endif
     </ul>
 
     <div class="logout-box">
@@ -89,8 +91,8 @@
 <div class="main-content">
     <div class="bg-white rounded-xl p-5 shadow-sm mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-            <h1 class="text-xl font-bold text-gray-800">Manajemen User</h1>
-            <p>Daftarkan akun baru dan kelola akun yang sudah ada</p>
+            <h1 class="text-xl font-bold text-gray-800">Manajemen Pengguna</h1>
+            <p>Daftarkan akun baru dan kelola hak akses sistem (Owner & Admin)</p>
         </div>
         
         <div class="profile-box flex items-center gap-3 bg-gray-50 border border-gray-200 px-4 py-3 rounded-xl">
@@ -101,9 +103,24 @@
                 <p class="text-xs text-gray-400 font-medium">
                     Akun Saat Ini
                 </p>
-                <p class="text-sm font-semibold text-gray-700">
-                    {{ session('user_data')['name'] ?? 'Pengguna' }}
-                </p>
+                <div class="flex items-center gap-2">
+                    <p class="text-sm font-semibold text-gray-700">
+                        {{ session('user_data')['name'] ?? 'Pengguna' }}
+                    </p>
+                    @php
+                        $userRole = strtolower(session('user_data')['role'] ?? 'admin');
+                        if ((session('user_data')['email'] ?? '') === 'handynandaf@gmail.com' || $userRole === 'owner') {
+                            $roleDisplay = 'Owner';
+                            $badgeClass = 'bg-purple-100 text-purple-700 border-purple-200';
+                        } else {
+                            $roleDisplay = 'Admin';
+                            $badgeClass = 'bg-blue-100 text-blue-700 border-blue-200';
+                        }
+                    @endphp
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border {{ $badgeClass }}">
+                        {{ $roleDisplay }}
+                    </span>
+                </div>
             </div>
         </div>
     </div>
@@ -141,6 +158,16 @@
                            class="w-full border border-gray-300 rounded-md p-2.5 bg-gray-50 outline-none focus:ring focus:ring-blue-200"
                            placeholder="email@domain.com">
                     <x-input-error :messages="$errors->get('email')" class="mt-2 text-red-500 text-sm" />
+                </div>
+
+                <!-- Role / Hak Akses -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Role / Hak Akses</label>
+                    <select name="role" required class="w-full border border-gray-300 rounded-md p-2.5 bg-gray-50 outline-none focus:ring focus:ring-blue-200">
+                        <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin (Akses Dashboard, Histori, Notifikasi, Profile, Ubah Koordinat)</option>
+                        <option value="owner" {{ old('role') === 'owner' ? 'selected' : '' }}>Owner (Full Akses Termasuk Kelola Perangkat & Manajemen User)</option>
+                    </select>
+                    <x-input-error :messages="$errors->get('role')" class="mt-2 text-red-500 text-sm" />
                 </div>
 
                 <!-- Password -->
@@ -188,27 +215,32 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($users ?? [] as $id =>$user)
+                    @forelse($users ?? [] as $id => $user)
+                        @php
+                            $userEmail = $user['email'] ?? '';
+                            $rawRole = strtolower($user['role'] ?? '');
+                            $isItemOwner = ($userEmail === 'handynandaf@gmail.com' || $rawRole === 'owner');
+                            $normalizedRole = $isItemOwner ? 'owner' : 'admin';
+                        @endphp
                         <tr class="bg-white border-b hover:bg-gray-50 transition-colors">
                             <td class="px-6 py-4">{{ $loop->iteration }}</td>
                             <td class="px-6 py-4 font-medium text-gray-900">{{ $user['name'] ?? '-' }}</td>
-                            <td class="px-6 py-4">{{ $user['email'] ?? '-' }}</td>
+                            <td class="px-6 py-4">{{ $userEmail }}</td>
                             <td class="px-6 py-4">
-                                <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-200">
-                                    {{ $user['role'] ?? 'User' }}
-                                </span>
+                                @if($isItemOwner)
+                                    <span class="bg-purple-100 text-purple-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-purple-200">
+                                        Owner
+                                    </span>
+                                @else
+                                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-blue-200">
+                                        Admin
+                                    </span>
+                                @endif
                             </td>
                             <td class="px-6 py-4 flex justify-center gap-2">
-                                <!-- Tombol Edit Memanggil Modal JS -->
-                                {{-- <button type="button" 
-                                        onclick="openEditModal('{{ $id }}', '{{ $user['name'] ?? '' }}', '{{$user['email'] ?? '' }}')"
-                                        class="text-white bg-amber-500 hover:bg-amber-600 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button> --}}
-
                                 <!-- Tombol Edit di Tabel -->
                                 <button type="button" 
-                                        onclick="openEditModal('{{ $id }}', '{{ $user['name'] ?? '' }}', '{{ $user['email'] ?? '' }}', '{{ $user['role'] ?? 'user' }}')"
+                                        onclick="openEditModal('{{ $id }}', '{{ addslashes($user['name'] ?? '') }}', '{{ addslashes($userEmail) }}', '{{ $normalizedRole }}')"
                                         class="text-white bg-amber-500 hover:bg-amber-600 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1">
                                     <i class="fas fa-edit"></i> Edit
                                 </button>
@@ -239,10 +271,11 @@
 </div>
 
 <!-- MODAL POPUP EDIT USER -->
-<div id="editModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative">
+<div id="editModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative">
         <div class="flex justify-between items-center mb-4 border-b pb-3">
             <h3 class="text-lg font-bold text-gray-800">
-                <i class="fas fa-user-edit text-amber-500 mr-2"></i> Edit Data User
+                <i class="fas fa-user-edit text-amber-500 mr-2"></i> Edit Data Akun
             </h3>
             <button type="button" onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
         </div>
@@ -267,8 +300,8 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Role / Hak Akses</label>
                     <select id="edit_role" name="role" required class="w-full border border-gray-300 rounded-md p-2.5 bg-gray-50 outline-none focus:ring focus:ring-blue-200">
-                        <option value="user">User</option>
                         <option value="admin">Admin</option>
+                        <option value="owner">Owner</option>
                     </select>
                 </div>
 
@@ -318,6 +351,6 @@
         modal.classList.remove('flex');
     }
 </script>
-
+<script src="{{ asset('js/responsive.js') }}"></script>
 </body>
 </html>

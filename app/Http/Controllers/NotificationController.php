@@ -13,6 +13,14 @@ class NotificationController extends Controller
      */
     public function index(?string $idPerangkat = null)
     {
+        if (!session()->has('is_logged_in')) {
+            return redirect()->route('login');
+        }
+
+        if (!$idPerangkat) {
+            $idPerangkat = session('id_perangkat') ?? (session('user_data')['id_perangkat'] ?? 'GPS001');
+        }
+
         $firebaseDbUrl = env('FIREBASE_DATABASE_URL');
         $notifications = [];
 
@@ -96,8 +104,12 @@ class NotificationController extends Controller
                 if ($response->successful() && $response->json()) {
                     $raw = $response->json();
                     $updates = [];
-                    foreach ($raw as $pushId => $item) {
-                        $updates["{$pushId}/is_read"] = true;
+                    if (is_array($raw)) {
+                        foreach ($raw as $pushId => $item) {
+                            if (is_array($item)) {
+                                $updates["{$pushId}/is_read"] = true;
+                            }
+                        }
                     }
                     if (!empty($updates)) {
                         Http::withoutVerifying()->patch("{$baseUrl}/GPS_TRACKING/NOTIFIKASI_LOG/{$idPerangkat}.json", $updates);
@@ -109,10 +121,19 @@ class NotificationController extends Controller
                 if ($response->successful() && $response->json()) {
                     $rawAll = $response->json();
                     $updates = [];
-                    foreach ($rawAll as $devId => $logs) {
-                        if (is_array($logs)) {
-                            foreach ($logs as $pushId => $item) {
-                                $updates["{$devId}/{$pushId}/is_read"] = true;
+                    foreach ($rawAll as $key1 => $value1) {
+                        if (!is_array($value1)) continue;
+
+                        // Deteksi Struktur 1: Notifikasi langsung di bawah NOTIFIKASI_LOG
+                        if (isset($value1['title']) || isset($value1['pesan_notifikasi']) || isset($value1['message'])) {
+                            $updates["{$key1}/is_read"] = true;
+                        } 
+                        // Deteksi Struktur 2: Notifikasi di dalam sub-folder ID perangkat
+                        else {
+                            foreach ($value1 as $pushId => $item) {
+                                if (is_array($item)) {
+                                    $updates["{$key1}/{$pushId}/is_read"] = true;
+                                }
                             }
                         }
                     }

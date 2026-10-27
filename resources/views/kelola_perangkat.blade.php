@@ -19,8 +19,10 @@
 <div class="sidebar">
 
     <div class="logo">
-        <i class="fas fa-motorcycle"></i>
-        <span>GPS Tracking</span>
+        <div class="logo-brand">
+            <i class="fas fa-car"></i>
+            <span>GPS Tracking</span>
+        </div>
     </div>
 
     <ul class="menu">
@@ -38,6 +40,10 @@
         
         @php
             $idPerangkatSession = session('user_data')['id_perangkat'] ?? session('id_perangkat') ?? 'perangkat_1';
+            $isOwner = session('user_data') && (
+                (session('user_data')['email'] ?? '') === 'handynandaf@gmail.com' || 
+                strtolower(session('user_data')['role'] ?? '') === 'owner'
+            );
         @endphp
         <li>
             <a href="{{ route('notifications.index', $idPerangkatSession) }}" class="...">
@@ -52,28 +58,24 @@
         </li>
 
         <li>
-            @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
-                <a href="{{ route('lokasi.aman') }}">
-                    <span>Ubah Koordinat</span>
-                </a>
-            @endif
+            <a href="{{ route('lokasi.aman') }}">
+                <span>Ubah Koordinat</span>
+            </a>
         </li>
 
-        <li>
-            @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
-                <a href="{{ route('perangkat.index') }}">
+        @if($isOwner)
+            <li>
+                <a href="{{ route('perangkat.index') }}" class="active">
                     <span>Kelola Perangkat</span>
                 </a>
-            @endif
-        </li>
+            </li>
 
-        <li>
-            @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
+            <li>
                 <a href="{{ route('register') }}">
                     <span>Daftarkan User</span>
                 </a>
-            @endif
-        </li>
+            </li>
+        @endif
     </ul>
 
     <div class="logout-box">
@@ -98,10 +100,21 @@
             <h1 class="text-2xl font-bold text-gray-800">Kelola Perangkat GPS</h1>
             <p class="text-sm text-gray-500">Manajemen unit modul ESP32, label kendaraan, dan radius geofencing</p>
         </div>
-        <div>
+        <div class="flex items-center gap-3">
             <button type="button" onclick="openModalTambah()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition duration-200 shadow-sm flex items-center gap-2">
                 <i class="fa-solid fa-plus"></i> Tambah Perangkat Baru
             </button>
+            {{-- <div class="profile-box flex items-center gap-3 bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl">
+                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                    <i class="fas fa-user text-blue-600 text-sm"></i>
+                </div>
+                <div class="text-left">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-gray-700">{{ session('user_data')['name'] ?? 'Pengguna' }}</span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-purple-100 text-purple-700 border-purple-200">Owner</span>
+                    </div>
+                </div>
+            </div> --}}
         </div>
     </div>
 
@@ -229,7 +242,7 @@
                 <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
                     Nama / Label Kendaraan <span class="text-red-500">*</span>
                 </label>
-                <input type="text" name="nama_kendaraan" placeholder="Contoh: Jupiter MX" required 
+                <input type="text" name="nama_kendaraan" placeholder="Contoh: AVANZA" required 
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
             </div>
             <div>
@@ -272,7 +285,7 @@
             @method('PUT')
             
             <div>
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">ID Perangkat (Fixed)</label>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">ID Perangkat</label>
                 <input type="text" id="edit_id_display" disabled class="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-sm text-gray-500 font-bold">
             </div>
             <div>
@@ -284,7 +297,7 @@
                 <input type="text" name="plat_nomor" id="edit_plat_nomor" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm uppercase focus:ring-2 focus:ring-blue-500 transition">
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Radius Geofencing (Fixed)</label>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Radius Geofencing </label>
                 <input type="number" name="radius_geofencing" id="edit_radius_geofencing" readonly class="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-sm text-gray-500 font-bold cursor-not-allowed">
             </div>
 
@@ -452,6 +465,6 @@ data.lng
 });
 
 </script>
-
+<script src="{{ asset('js/responsive.js') }}"></script>
 </body>
 </html>

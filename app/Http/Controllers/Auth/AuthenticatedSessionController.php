@@ -20,6 +20,16 @@ class AuthenticatedSessionController extends Controller
             // Ambil id_perangkat atau fallback ke 'perangkat_1'
             $idPerangkat = $userData['id_perangkat'] ?? 'perangkat_1';
 
+            // Normalisasi Role:
+            // Email handynandaf@gmail.com selalu 'owner'.
+            // Role 'owner' tetap 'owner', selain itu (user/admin/kosong) menjadi 'admin'.
+            $currentRole = strtolower($userData['role'] ?? '');
+            if (($userData['email'] ?? '') === 'handynandaf@gmail.com' || $currentRole === 'owner') {
+                $userData['role'] = 'owner';
+            } else {
+                $userData['role'] = 'admin';
+            }
+
             session([
                 'is_logged_in' => true,
                 'user_data' => $userData,
@@ -58,6 +68,16 @@ class AuthenticatedSessionController extends Controller
                     // PENYEMPURNAAN: Pastikan key 'id_perangkat' selalu ada.
                     // Jika di node Firebase belum ada 'id_perangkat', gunakan $id atau fallback ke 'perangkat_1'
                     $authenticatedUser['id_perangkat'] = $user['id_perangkat'] ?? $user['device_id'] ?? 'perangkat_1';
+
+                    // Normalisasi Role:
+                    // Email handynandaf@gmail.com selalu 'owner'.
+                    // Role 'owner' tetap 'owner', selain itu menjadi 'admin'.
+                    $currentRole = strtolower($user['role'] ?? '');
+                    if ($user['email'] === 'handynandaf@gmail.com' || $currentRole === 'owner') {
+                        $authenticatedUser['role'] = 'owner';
+                    } else {
+                        $authenticatedUser['role'] = 'admin';
+                    }
                     
                     break;
                 }

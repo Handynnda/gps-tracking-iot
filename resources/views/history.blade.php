@@ -21,8 +21,10 @@
 <div class="sidebar">
 
     <div class="logo">
-        <i class="fas fa-motorcycle"></i>
-        <span>GPS Tracking</span>
+        <div class="logo-brand">
+            <i class="fas fa-car"></i>
+            <span>GPS Tracking</span>
+        </div>
     </div>
 
     <ul class="menu">
@@ -40,6 +42,10 @@
         
         @php
             $idPerangkatSession = session('user_data')['id_perangkat'] ?? session('id_perangkat') ?? 'perangkat_1';
+            $isOwner = session('user_data') && (
+                (session('user_data')['email'] ?? '') === 'handynandaf@gmail.com' || 
+                strtolower(session('user_data')['role'] ?? '') === 'owner'
+            );
         @endphp
         <li>
             <a href="{{ route('notifications.index', $idPerangkatSession) }}">
@@ -54,28 +60,24 @@
         </li>
 
         <li>
-            @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
-                <a href="{{ route('lokasi.aman') }}">
-                    <span>Ubah Koordinat</span>
-                </a>
-            @endif
+            <a href="{{ route('lokasi.aman') }}">
+                <span>Ubah Koordinat</span>
+            </a>
         </li>
 
-        @if(session('user_data.email') === 'handynandaf@gmail.com')
+        @if($isOwner)
             <li>
                 <a href="{{ route('perangkat.index') }}">
                     <span>Kelola Perangkat</span>
                 </a>
             </li>
-        @endif
 
-        <li>
-            @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
+            <li>
                 <a href="{{ route('register') }}">
                     <span>Daftarkan User</span>
                 </a>
-            @endif
-        </li>
+            </li>
+        @endif
     </ul>
 
     <div class="logout-box">
@@ -105,9 +107,24 @@
                 <p class="text-xs text-gray-400 font-medium">
                     Akun Saat Ini
                 </p>
-                <p class="text-sm font-semibold text-gray-700">
-                    {{ session('user_data')['name'] ?? 'Pengguna' }}
-                </p>
+                <div class="flex items-center gap-2">
+                    <p class="text-sm font-semibold text-gray-700">
+                        {{ session('user_data')['name'] ?? 'Pengguna' }}
+                    </p>
+                    @php
+                        $userRole = strtolower(session('user_data')['role'] ?? 'admin');
+                        if ((session('user_data')['email'] ?? '') === 'handynandaf@gmail.com' || $userRole === 'owner') {
+                            $roleDisplay = 'Owner';
+                            $badgeClass = 'bg-purple-100 text-purple-700 border-purple-200';
+                        } else {
+                            $roleDisplay = 'Admin';
+                            $badgeClass = 'bg-blue-100 text-blue-700 border-blue-200';
+                        }
+                    @endphp
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border {{ $badgeClass }}">
+                        {{ $roleDisplay }}
+                    </span>
+                </div>
             </div>
         </div>
     </div>
@@ -504,5 +521,6 @@
         }
     });
 </script>
+<script src="{{ asset('js/responsive.js') }}"></script>
 </body>
 </html>

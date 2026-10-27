@@ -15,8 +15,10 @@
 <div class="sidebar">
 
     <div class="logo">
-        <i class="fas fa-motorcycle"></i>
-        <span>GPS Tracking</span>
+        <div class="logo-brand">
+            <i class="fas fa-car"></i>
+            <span>GPS Tracking</span>
+        </div>
     </div>
 
     <ul class="menu">
@@ -34,6 +36,10 @@
         
         @php
             $idPerangkatSession = session('user_data')['id_perangkat'] ?? session('id_perangkat') ?? 'GPS001';
+            $isOwner = session('user_data') && (
+                (session('user_data')['email'] ?? '') === 'handynandaf@gmail.com' || 
+                strtolower(session('user_data')['role'] ?? '') === 'owner'
+            );
         @endphp
         <li>
             <a href="{{ route('notifications.index', $idPerangkatSession) }}">
@@ -48,28 +54,24 @@
         </li>
 
         <li>
-            @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
-                <a href="{{ route('lokasi.aman') }}">
-                    <span>Ubah Koordinat</span>
-                </a>
-            @endif
+            <a href="{{ route('lokasi.aman') }}">
+                <span>Ubah Koordinat</span>
+            </a>
         </li>
 
-        @if(session('user_data.email') === 'handynandaf@gmail.com')
+        @if($isOwner)
             <li>
                 <a href="{{ route('perangkat.index') }}">
                     <span>Kelola Perangkat</span>
                 </a>
             </li>
-        @endif
 
-        <li>
-            @if(session('user_data') && session('user_data')['email'] === 'handynandaf@gmail.com')
+            <li>
                 <a href="{{ route('register') }}">
                     <span>Daftarkan User</span>
                 </a>
-            @endif
-        </li>
+            </li>
+        @endif
     </ul>
 
     <div class="logout-box">
@@ -91,21 +93,36 @@
             <h1 class="text-xl font-bold text-gray-800">Pusat Notifikasi</h1>
             <p>Riwayat peringatan geofencing seluruh kendaraan terdaftar</p>
         </div>
-            <div class="profile-box flex items-center gap-3 bg-gray-50 border border-gray-200 px-4 py-3 rounded-xl">
-                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <i class="fas fa-user text-blue-600"></i>
-                </div>
+        <div class="profile-box flex items-center gap-3 bg-gray-50 border border-gray-200 px-4 py-3 rounded-xl">
+            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <i class="fas fa-user text-blue-600"></i>
+            </div>
 
-                <div>
-                    <p class="text-xs text-gray-400 font-medium">
-                        Akun Saat Ini
-                    </p>
+            <div>
+                <p class="text-xs text-gray-400 font-medium">
+                    Akun Saat Ini
+                </p>
 
+                <div class="flex items-center gap-2">
                     <p class="text-sm font-semibold text-gray-700">
                         {{ session('user_data')['name'] ?? 'Pengguna' }}
                     </p>
+                    @php
+                        $userRole = strtolower(session('user_data')['role'] ?? 'admin');
+                        if ((session('user_data')['email'] ?? '') === 'handynandaf@gmail.com' || $userRole === 'owner') {
+                            $roleDisplay = 'Owner';
+                            $badgeClass = 'bg-purple-100 text-purple-700 border-purple-200';
+                        } else {
+                            $roleDisplay = 'Admin';
+                            $badgeClass = 'bg-blue-100 text-blue-700 border-blue-200';
+                        }
+                    @endphp
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border {{ $badgeClass }}">
+                        {{ $roleDisplay }}
+                    </span>
                 </div>
             </div>
+        </div>
     </div>
 
     <!-- MAIN PANEL -->
@@ -113,21 +130,34 @@
         
         <!-- HEADER BUTTONS -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b border-gray-100 pb-4">
-            <h2 class="text-lg font-bold text-gray-800 flex items-center">
-                <i class="fas fa-bell text-blue-600 mr-2"></i> Daftar Notifikasi Masuk
-            </h2>
+            <div class="flex items-center gap-3">
+                <h2 class="text-lg font-bold text-gray-800 flex items-center">
+                    <i class="fas fa-bell text-blue-600 mr-2"></i> Daftar Notifikasi Masuk
+                </h2>
+                @php
+                    $unreadCount = collect($notifications ?? [])->filter(function ($item) {
+                        return empty($item['is_read']);
+                    })->count();
+                @endphp
+                @if($unreadCount > 0)
+                    <span class="bg-red-100 text-red-600 text-xs font-bold px-2.5 py-0.5 rounded-full border border-red-200">
+                        {{ $unreadCount }} Belum Dibaca
+                    </span>
+                @endif
+            </div>
             
             <!-- Tombol Tandai Semua Dibaca -->
-            {{-- <div id="btn-read-all-container">
+            <div id="btn-read-all-container">
                 @if(!empty($notifications) && count($notifications) > 0)                
-                    <form action="{{ route('notifications.readAll', $idPerangkat ?? 'all') }}" method="POST">
+                    <form action="{{ route('notifications.readAll', 'all') }}" method="POST">
                         @csrf
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition duration-200 shadow-sm flex items-center gap-2">
-                            <i class="fa-solid fa-check-double"></i> Tandai Semua Dibaca
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-4 py-2 rounded-lg text-sm font-semibold transition duration-200 shadow-sm flex items-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-check-double"></i> 
+                            <span>Tandai Semua Dibaca</span>
                         </button>
                     </form>
                 @endif
-            </div> --}}
+            </div>
         </div>
 
         <!-- ALERT STATUS -->
@@ -338,8 +368,9 @@
             btnContainer.innerHTML = `
                 <form action="${readAllUrl}" method="POST">
                     <input type="hidden" name="_token" value="${csrfToken}">
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition duration-200 shadow-sm flex items-center gap-2">
-                        <i class="fa-solid fa-check-double"></i> Tandai Semua Dibaca
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-4 py-2 rounded-lg text-sm font-semibold transition duration-200 shadow-sm flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-check-double"></i> 
+                        <span>Tandai Semua Dibaca</span>
                     </button>
                 </form>`;
         }
@@ -365,7 +396,7 @@
             let markReadBtn = '';
             if (!isRead) {
                 markReadBtn = `
-                    <form action="/notifikasi/${itemDeviceId}/${pushId}/read" method="POST">
+                    <form action="/notifikasi/${itemDeviceId}/read/${pushId}" method="POST">
                         <input type="hidden" name="_token" value="${csrfToken}">
                         <button type="submit" title="Tandai Dibaca" class="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-100/50 transition">
                             <i class="fa-solid fa-check"></i>
@@ -416,7 +447,7 @@
 
                     <div class="flex items-center gap-1 shrink-0">
                         ${markReadBtn}
-                        <form action="/notifikasi/${itemDeviceId}/${pushId}" method="POST" onsubmit="return confirm('Hapus notifikasi ini?')">
+                        <form action="/notifikasi/${itemDeviceId}/delete/${pushId}" method="POST" onsubmit="return confirm('Hapus notifikasi ini?')">
                             <input type="hidden" name="_token" value="${csrfToken}">
                             <input type="hidden" name="_method" value="DELETE">
                             <button type="submit" title="Hapus Notifikasi" class="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-100/50 transition">
@@ -430,6 +461,6 @@
         container.innerHTML = htmlContent;
     });
 </script>
-
+<script src="{{ asset('js/responsive.js') }}"></script>
 </body>
 </html>

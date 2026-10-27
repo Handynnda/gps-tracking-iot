@@ -3,7 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-// use Illuminate\Support\Facades\URL;
+// Ubah BARIS ini tidak menjadi komen AGAR NGROK BISA MEMBACA CSS
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,12 +21,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // TAMBAHKAN BARIS INI AGAR NGROK BISA MEMBACA CSS
-        // if (env('APP_ENV') !== 'local') {
-        //     URL::forceScheme('https');
-        // } else {
-        //     // Opsional: Paksa HTTPS jalan terus selama pakai Ngrok
-        //     URL::forceScheme('https');
-        // }
+        // =========================================================================
+        // Hapus tanda komentar jika ingin menjalankan Ngrok:
+        // =========================================================================
+        
+         URL::forceScheme('https');
+
+         if (str_contains(request()->getHost(), 'ngrok') || str_contains(request()->header('x-forwarded-host', ''), 'ngrok')) {
+             URL::forceScheme('https');
+         }
+        
     }
 }

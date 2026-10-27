@@ -12,14 +12,23 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
+    private function isOwner(): bool
+    {
+        $user = session('user_data');
+        if (!$user) {
+            return false;
+        }
+        return ($user['email'] ?? '') === 'handynandaf@gmail.com' || strtolower($user['role'] ?? '') === 'owner';
+    }
+
     public function create(): View|RedirectResponse
     {
-        if (!session('user_data') || session('user_data')['email'] !== 'handynandaf@gmail.com') {
-            return redirect()->route('dashboard');
+        if (!$this->isOwner()) {
+            return redirect()->route('dashboard')->with('error', 'Akses ditolak. Fitur ini hanya dapat diakses oleh Owner.');
         }
 
         $firebaseUrl = env('FIREBASE_DATABASE_URL') . '/GPS_TRACKING/AKUN.json';
-        $response = Http::get($firebaseUrl);
+        $response = Http::withoutVerifying()->get($firebaseUrl);
         
         $users = $response->json() ?? []; 
 
@@ -28,52 +37,55 @@ class RegisteredUserController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        if (!session('user_data') || session('user_data')['email'] !== 'handynandaf@gmail.com') {
-            return redirect()->route('dashboard');
+        if (!$this->isOwner()) {
+            return redirect()->route('dashboard')->with('error', 'Akses ditolak. Fitur ini hanya dapat diakses oleh Owner.');
         }
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255'],
+            'role' => ['required', 'string', 'in:owner,admin'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $userId = uniqid('user_');
+        $role = strtolower($request->role);
 
         $userData = [
             'id' => $userId,
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'user',
+            'role' => $role,
             'created_at' => now()->toDateTimeString()
         ];
 
         $firebaseUrl = env('FIREBASE_DATABASE_URL') . '/GPS_TRACKING/AKUN/' . $userId . '.json';
-        Http::put($firebaseUrl, $userData);
+        Http::withoutVerifying()->put($firebaseUrl, $userData);
 
-        return back()->with('status', 'User baru berhasil didaftarkan!');
+        return back()->with('status', 'Akun ' . ucfirst($role) . ' berhasil didaftarkan!');
     }
 
     public function update(Request $request, string $id): RedirectResponse
     {
-        if (!session('user_data') || session('user_data')['email'] !== 'handynandaf@gmail.com') {
-            return redirect()->route('dashboard');
+        if (!$this->isOwner()) {
+            return redirect()->route('dashboard')->with('error', 'Akses ditolak. Fitur ini hanya dapat diakses oleh Owner.');
         }
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255'],
-            'role' => ['required', 'string', 'in:user,admin'], // Validasi role
+            'role' => ['required', 'string', 'in:owner,admin'], // Validasi role: owner atau admin
             'password' => ['nullable', Rules\Password::defaults()],
         ]);
 
         $firebaseUrl = env('FIREBASE_DATABASE_URL') . '/GPS_TRACKING/AKUN/' . $id . '.json';
+        $role = strtolower($request->role);
 
         $updateData = [
             'name' => $request->name,
             'email' => $request->email,
-            'role' => $request->role, // Simpan perubahan role ke Firebase
+            'role' => $role, // Simpan perubahan role ke Firebase
             'updated_at' => now()->toDateTimeString(),
         ];
 
@@ -81,19 +93,19 @@ class RegisteredUserController extends Controller
             $updateData['password'] = Hash::make($request->password);
         }
 
-        Http::patch($firebaseUrl, $updateData);
+        Http::withoutVerifying()->patch($firebaseUrl, $updateData);
 
-        return back()->with('status', 'Data user & role berhasil diperbarui!');
+        return back()->with('status', 'Data akun & role berhasil diperbarui!');
     }
 
     public function destroy(string $id): RedirectResponse
     {
-        if (!session('user_data') || session('user_data')['email'] !== 'handynandaf@gmail.com') {
-            return redirect()->route('dashboard');
+        if (!$this->isOwner()) {
+            return redirect()->route('dashboard')->with('error', 'Akses ditolak. Fitur ini hanya dapat diakses oleh Owner.');
         }
 
         $firebaseUrl = env('FIREBASE_DATABASE_URL') . '/GPS_TRACKING/AKUN/' . $id . '.json';
-        Http::delete($firebaseUrl);
+        Http::withoutVerifying()->delete($firebaseUrl);
 
         return back()->with('status', 'User berhasil dihapus!');
     }

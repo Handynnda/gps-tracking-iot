@@ -37,12 +37,19 @@ class ProfileController extends Controller
         $user = session('user_data');
         $userId = $user['id'];
 
+        $role = $user['role'] ?? 'admin';
+        if ($user['email'] === 'handynandaf@gmail.com' || strtolower($role) === 'owner') {
+            $role = 'owner';
+        } elseif (strtolower($role) === 'user') {
+            $role = 'admin';
+        }
+
         // Susun ulang data yang akan diupdate
         $userData = [
             'id' => $userId,
             'name' => $request->name,
             'email' => $request->email,
-            'role' => $user['role'] ?? 'user',
+            'role' => $role,
             'created_at' => $user['created_at'] ?? now()->toDateTimeString(),
         ];
 
@@ -56,7 +63,7 @@ class ProfileController extends Controller
         // Kirim (Timpa) data ke Firebase menggunakan method PUT
         $firebaseUrl = env('FIREBASE_DATABASE_URL', 'https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app') . '/GPS_TRACKING/AKUN/' . $userId . '.json';
         
-        $response = Http::put($firebaseUrl, $userData);
+        $response = Http::withoutVerifying()->put($firebaseUrl, $userData);
 
         if ($response->successful()) {
             // Update data session agar nama di pojok kanan atas langsung berubah

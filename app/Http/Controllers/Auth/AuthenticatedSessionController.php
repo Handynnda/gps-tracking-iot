@@ -50,7 +50,7 @@ class AuthenticatedSessionController extends Controller
         ]);
 
         // Ambil semua data akun dari Firebase (menggunakan withoutVerifying agar aman di localhost)
-        $firebaseUrl = rtrim(env('FIREBASE_DATABASE_URL'), '/') . '/GPS_TRACKING/AKUN.json';
+        $firebaseUrl = rtrim(config('services.firebase.database_url', env('FIREBASE_DATABASE_URL', 'https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app')), '/') . '/GPS_TRACKING/AKUN.json';
         $response = Http::withoutVerifying()->get($firebaseUrl);
         $users = $response->json();
 

@@ -17,7 +17,7 @@ class NotificationService
         string|float|null $lat = null,
         string|float|null $lng = null
     ): void {
-        $firebaseDbUrl = env('FIREBASE_DATABASE_URL');
+        $firebaseDbUrl = config('services.firebase.database_url', env('FIREBASE_DATABASE_URL', 'https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app'));
 
         if ($firebaseDbUrl && $idPerangkat) {
             try {

@@ -21,13 +21,18 @@ class RegisteredUserController extends Controller
         return ($user['email'] ?? '') === 'handynandaf@gmail.com' || strtolower($user['role'] ?? '') === 'owner';
     }
 
+    private function getFirebaseUrl(): string
+    {
+        return rtrim(config('services.firebase.database_url', env('FIREBASE_DATABASE_URL', 'https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app')), '/');
+    }
+
     public function create(): View|RedirectResponse
     {
         if (!$this->isOwner()) {
             return redirect()->route('dashboard')->with('error', 'Akses ditolak. Fitur ini hanya dapat diakses oleh Owner.');
         }
 
-        $firebaseUrl = env('FIREBASE_DATABASE_URL') . '/GPS_TRACKING/AKUN.json';
+        $firebaseUrl = $this->getFirebaseUrl() . '/GPS_TRACKING/AKUN.json';
         $response = Http::withoutVerifying()->get($firebaseUrl);
         
         $users = $response->json() ?? []; 
@@ -60,7 +65,7 @@ class RegisteredUserController extends Controller
             'created_at' => now()->toDateTimeString()
         ];
 
-        $firebaseUrl = env('FIREBASE_DATABASE_URL') . '/GPS_TRACKING/AKUN/' . $userId . '.json';
+        $firebaseUrl = $this->getFirebaseUrl() . '/GPS_TRACKING/AKUN/' . $userId . '.json';
         Http::withoutVerifying()->put($firebaseUrl, $userData);
 
         return back()->with('status', 'Akun ' . ucfirst($role) . ' berhasil didaftarkan!');
@@ -79,7 +84,7 @@ class RegisteredUserController extends Controller
             'password' => ['nullable', Rules\Password::defaults()],
         ]);
 
-        $firebaseUrl = env('FIREBASE_DATABASE_URL') . '/GPS_TRACKING/AKUN/' . $id . '.json';
+        $firebaseUrl = $this->getFirebaseUrl() . '/GPS_TRACKING/AKUN/' . $id . '.json';
         $role = strtolower($request->role);
 
         $updateData = [
@@ -104,7 +109,7 @@ class RegisteredUserController extends Controller
             return redirect()->route('dashboard')->with('error', 'Akses ditolak. Fitur ini hanya dapat diakses oleh Owner.');
         }
 
-        $firebaseUrl = env('FIREBASE_DATABASE_URL') . '/GPS_TRACKING/AKUN/' . $id . '.json';
+        $firebaseUrl = $this->getFirebaseUrl() . '/GPS_TRACKING/AKUN/' . $id . '.json';
         Http::withoutVerifying()->delete($firebaseUrl);
 
         return back()->with('status', 'User berhasil dihapus!');

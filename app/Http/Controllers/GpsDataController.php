@@ -25,7 +25,7 @@ class GpsDataController extends Controller
         $currentLat  = (float) $request->input('latitude');
         $currentLng  = (float) $request->input('longitude');
 
-        $firebaseDbUrl = env('FIREBASE_DATABASE_URL');
+        $firebaseDbUrl = config('services.firebase.database_url', env('FIREBASE_DATABASE_URL', 'https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app'));
         $baseUrl       = rtrim($firebaseDbUrl, '/');
 
         // 1. Simpan Log Koordinat ke History Firebase (/GPS_TRACKING/HISTORY/{device_id}/{date})

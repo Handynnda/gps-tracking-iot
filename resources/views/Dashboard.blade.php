@@ -429,7 +429,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-let currentDeviceId = "";
+let currentDeviceId = localStorage.getItem('selected_device_id') || "";
 let historyLog = [];
 let globalPerangkatData = {};
 let globalGeofenceData = {};
@@ -571,37 +571,40 @@ map.on('zoomstart', disableAutoCenterFromUser);
 map.on('dragstart', disableAutoCenterFromUser);
 
 function fitRouteToMap() {
-    const points = routeLine.getLatLngs();
+    const allPoints = [];
 
-    if (!points || points.length === 0) {
-        const vehiclePosition = vehicleMarker.getLatLng();
-        if (vehiclePosition) {
-            programmaticMapMove = true;
-            map.once('moveend', () => {
-                programmaticMapMove = false;
-            });
-            map.setView(vehiclePosition, 17, { animate: true });
-            setTimeout(() => {
-                programmaticMapMove = false;
-            }, 1000);
+    // 1. Koordinat pusat geofence & batas radius geofence
+    if (geofenceCircle && typeof geofenceCircle.getBounds === 'function') {
+        const circleBounds = geofenceCircle.getBounds();
+        if (circleBounds && circleBounds.isValid()) {
+            allPoints.push(circleBounds.getNorthEast());
+            allPoints.push(circleBounds.getSouthWest());
         }
-        return;
+    } else if (centerMarker && centerMarker.getLatLng()) {
+        allPoints.push(centerMarker.getLatLng());
     }
 
-    if (points.length === 1) {
-        programmaticMapMove = true;
-        map.once('moveend', () => {
-            programmaticMapMove = false;
-        });
-        map.setView(points[0], 17, { animate: true });
-        setTimeout(() => {
-            programmaticMapMove = false;
-        }, 1000);
-        return;
+    // 2. Posisi kendaraan saat ini
+    if (vehicleMarker && vehicleMarker.getLatLng()) {
+        allPoints.push(vehicleMarker.getLatLng());
     }
 
-    const bounds = routeLine.getBounds();
+    // 3. Titik rute perjalanan jika ada
+    if (routeLine) {
+        const routeLatLngs = routeLine.getLatLngs();
+        if (Array.isArray(routeLatLngs) && routeLatLngs.length > 0) {
+            const flattened = routeLatLngs.flat(Infinity);
+            flattened.forEach((pt) => {
+                if (pt && (pt.lat !== undefined || Array.isArray(pt))) {
+                    allPoints.push(pt);
+                }
+            });
+        }
+    }
 
+    if (allPoints.length === 0) return;
+
+    const bounds = L.latLngBounds(allPoints);
     if (!bounds.isValid()) return;
 
     programmaticMapMove = true;
@@ -610,8 +613,8 @@ function fitRouteToMap() {
     });
 
     map.fitBounds(bounds, {
-        padding: [50, 50],
-        maxZoom: 17,
+        padding: [60, 60],
+        maxZoom: 16,
         animate: true
     });
 
@@ -689,6 +692,7 @@ const deviceSelectEl = document.getElementById('device-select');
 if (deviceSelectEl) {
     deviceSelectEl.addEventListener('change', (e) => {
         currentDeviceId = e.target.value;
+        localStorage.setItem('selected_device_id', currentDeviceId);
         document.getElementById('input-respon-id').value = currentDeviceId;
         document.getElementById('input-cutoff-id').value = currentDeviceId;
         document.getElementById('input-resume-id').value = currentDeviceId; // Diperbarui
@@ -712,7 +716,11 @@ function populateDeviceDropdown(perangkatDict) {
         return;
     }
 
-    const previousSelected = deviceSelectEl.value || currentDeviceId;
+    const savedDevice = localStorage.getItem('selected_device_id');
+    const previousSelected = (savedDevice && deviceKeys.includes(savedDevice))
+        ? savedDevice
+        : (deviceSelectEl.value || currentDeviceId);
+
     deviceSelectEl.innerHTML = '';
 
     deviceKeys.forEach((devId) => {
@@ -733,6 +741,8 @@ function populateDeviceDropdown(perangkatDict) {
         currentDeviceId = deviceKeys[0];
     }
 
+    localStorage.setItem('selected_device_id', currentDeviceId);
+
     document.getElementById('input-respon-id').value = currentDeviceId;
     document.getElementById('input-cutoff-id').value = currentDeviceId;
     document.getElementById('input-resume-id').value = currentDeviceId; // Diperbarui
@@ -741,6 +751,16 @@ function populateDeviceDropdown(perangkatDict) {
         setupHistoryRealtime(currentDeviceId);
     }
 }
+
+// Sinkronisasi realtime jika user mengganti pilihan perangkat dari tab/halaman lain
+window.addEventListener('storage', (e) => {
+    if (e.key === 'selected_device_id' && e.newValue && e.newValue !== currentDeviceId) {
+        if (deviceSelectEl && Array.from(deviceSelectEl.options).some(o => o.value === e.newValue)) {
+            deviceSelectEl.value = e.newValue;
+            deviceSelectEl.dispatchEvent(new Event('change'));
+        }
+    }
+});
 
 function getTodayDateKey() {
     const now = new Date();

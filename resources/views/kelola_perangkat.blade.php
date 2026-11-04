@@ -142,7 +142,7 @@
                         <th class="p-4">Nama Kendaraan</th>
                         <th class="p-4">Plat Nomor</th>
                         <th class="p-4">Radius Geofence</th>
-                        <th class="p-4">Status Sesi</th>
+                        <th class="p-4 text-center">Auto Cut-Off</th>
                         <th class="p-4 text-center">Aksi</th>
                     </tr>
                 </thead>
@@ -167,20 +167,27 @@
                                 <td class="p-4 font-medium">
                                     {{ $item['radius_geofencing'] ?? 100 }} Meter
                                 </td>
-                                <td class="p-4">
-                                    @if($isCurrentActive)
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200">
-                                            <i class="fa-solid fa-circle text-[6px]"></i> Aktif Dipilih
+                                <td class="p-4 text-center">
+                                    @php
+                                        $modeCutoff = $item['mode_cutoff'] ?? 'OTOMATIS';
+                                        $isOtomatis = ($modeCutoff === 'OTOMATIS');
+                                    @endphp
+                                    <div class="inline-flex items-center justify-center gap-2.5">
+                                        <!-- Toggle Switch -->
+                                        <label class="relative inline-flex items-center cursor-pointer select-none">
+                                            <input type="checkbox"
+                                                   id="toggle-cutoff-{{ $item['id_perangkat'] }}"
+                                                   class="sr-only peer"
+                                                   {{ $isOtomatis ? 'checked' : '' }}
+                                                   onchange="toggleModeCutoff('{{ $item['id_perangkat'] }}', this.checked)">
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 shadow-inner"></div>
+                                        </label>
+                                        <!-- Badge Status -->
+                                        <span id="badge-cutoff-{{ $item['id_perangkat'] }}"
+                                              class="text-[11px] font-bold px-2 py-0.5 rounded-md tracking-wide transition-colors {{ $isOtomatis ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-gray-600 border border-gray-200' }}">
+                                            {{ $isOtomatis ? 'OTOMATIS' : 'MANUAL' }}
                                         </span>
-                                    @else
-                                        <form action="{{ route('perangkat.setActive') }}" method="POST" class="inline">
-                                            @csrf
-                                            <input type="hidden" name="id_perangkat" value="{{ $item['id_perangkat'] ?? '' }}">
-                                            <button type="submit" class="text-xs text-blue-600 hover:text-blue-800 hover:underline font-semibold">
-                                                Pilih Perangkat Ini
-                                            </button>
-                                        </form>
-                                    @endif
+                                    </div>
                                 </td>
                                 <td class="p-4">
                                     <div class="flex items-center justify-center gap-1">
@@ -466,5 +473,90 @@ data.lng
 
 </script>
 <script src="{{ asset('js/responsive.js') }}"></script>
+
+<!-- TOAST NOTIFIKASI KONTROL CUT-OFF -->
+<div id="toast-notification" class="fixed top-5 right-5 z-50 transform transition-all duration-300 translate-y-[-100px] opacity-0 pointer-events-none">
+    <div id="toast-box" class="flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-lg"></i>
+        <span id="toast-message">Notifikasi</span>
+    </div>
+</div>
+
+<script>
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast-notification');
+    const toastBox = document.getElementById('toast-box');
+    const toastIcon = document.getElementById('toast-icon');
+    const toastMsg = document.getElementById('toast-message');
+
+    if (!toast || !toastBox || !toastIcon || !toastMsg) return;
+
+    toastMsg.innerText = message;
+    if (type === 'success') {
+        toastBox.className = 'flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium bg-emerald-50 text-emerald-800 border-emerald-200';
+        toastIcon.className = 'fa-solid fa-circle-check text-lg text-emerald-600';
+    } else {
+        toastBox.className = 'flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium bg-red-50 text-red-800 border-red-200';
+        toastIcon.className = 'fa-solid fa-triangle-exclamation text-lg text-red-600';
+    }
+
+    toast.classList.remove('translate-y-[-100px]', 'opacity-0', 'pointer-events-none');
+    toast.classList.add('translate-y-0', 'opacity-100');
+
+    setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-[-100px]', 'opacity-0', 'pointer-events-none');
+    }, 3500);
+}
+
+function toggleModeCutoff(idPerangkat, isChecked) {
+    const newMode = isChecked ? 'OTOMATIS' : 'MANUAL';
+    const badge = document.getElementById('badge-cutoff-' + idPerangkat);
+    const toggle = document.getElementById('toggle-cutoff-' + idPerangkat);
+
+    if (badge) {
+        badge.innerText = 'Menyimpan...';
+        badge.className = 'text-[11px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-700 border border-amber-200 animate-pulse';
+    }
+
+    fetch("{{ route('perangkat.toggleCutoff') }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            id_perangkat: idPerangkat,
+            mode_cutoff: newMode
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (badge) {
+                badge.innerText = newMode;
+                badge.className = isChecked 
+                    ? 'text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200'
+                    : 'text-[11px] font-bold px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 border border-gray-200';
+            }
+            showToast(data.message, 'success');
+        } else {
+            throw new Error(data.message || 'Gagal mengubah mode');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        if (toggle) toggle.checked = !isChecked;
+        if (badge) {
+            badge.innerText = !isChecked ? 'OTOMATIS' : 'MANUAL';
+            badge.className = !isChecked 
+                ? 'text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200'
+                : 'text-[11px] font-bold px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 border border-gray-200';
+        }
+        showToast(err.message || 'Gagal mengubah mode cut-off', 'error');
+    });
+}
+</script>
 </body>
 </html>

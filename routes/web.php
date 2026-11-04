@@ -173,6 +173,7 @@ Route::middleware([NoCache::class])->group(function () {
         Route::put('/kelola-perangkat/{idPerangkat}', [PerangkatController::class, 'update'])->name('perangkat.update');
         Route::delete('/kelola-perangkat/{idPerangkat}', [PerangkatController::class, 'destroy'])->name('perangkat.destroy');
         Route::post('/kelola-perangkat/pilih', [PerangkatController::class, 'setActive'])->name('perangkat.setActive');
+        Route::post('/kelola-perangkat/toggle-cutoff', [PerangkatController::class, 'toggleCutoff'])->name('perangkat.toggleCutoff');
 
         // Manajemen User (Daftarkan User, Edit Role/Password, Hapus)
         Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');

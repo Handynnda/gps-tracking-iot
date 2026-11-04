@@ -46,6 +46,8 @@ class PerangkatController extends Controller
                         $value['radius_geofencing'] = $value['radius_geofencing'] ?? 100;
                     }
 
+                    $value['mode_cutoff'] = $value['mode_cutoff'] ?? 'OTOMATIS';
+
                     $perangkatList[] = $value;
                 }
             }
@@ -87,6 +89,7 @@ class PerangkatController extends Controller
                 $payloadPerangkat['relay']   = "OFF";
                 $payloadPerangkat['satelit'] = 0;
                 $payloadPerangkat['status']  = "MEMPROSES LOKASI";
+                $payloadPerangkat['mode_cutoff'] = "OTOMATIS";
             }
 
             // Simpan ke node PERANGKAT
@@ -183,5 +186,38 @@ class PerangkatController extends Controller
         session(['id_perangkat' => $idPerangkat]);
 
         return back()->with('status', "Perangkat aktif diubah ke '{$idPerangkat}'.");
+    }
+
+    public function toggleCutoff(Request $request)
+    {
+        $request->validate([
+            'id_perangkat' => 'required|string',
+            'mode_cutoff'  => 'required|in:OTOMATIS,MANUAL',
+        ]);
+
+        $baseUrl = $this->getFirebaseUrl();
+        $idPerangkat = $request->input('id_perangkat');
+        $mode = $request->input('mode_cutoff');
+        $urlTarget = "{$baseUrl}/{$this->firebasePath}/{$idPerangkat}.json";
+
+        try {
+            $response = Http::withoutVerifying()->patch($urlTarget, [
+                'mode_cutoff' => $mode,
+                'updated_at'  => now()->toISOString(),
+            ]);
+
+            if ($response->successful()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Mode cut-off perangkat '{$idPerangkat}' berhasil diubah ke {$mode}!",
+                    'mode'    => $mode,
+                ]);
+            }
+
+            return response()->json(['success' => false, 'message' => 'Gagal memperbarui mode di Firebase.'], 500);
+        } catch (\Exception $e) {
+            Log::error("Error Toggle Cutoff: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()], 500);
+        }
     }
 }

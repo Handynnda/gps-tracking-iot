@@ -21,7 +21,7 @@ class NotificationService
 
         if ($firebaseDbUrl && $idPerangkat) {
             try {
-                Http::post(rtrim($firebaseDbUrl, '/') . "/GPS_TRACKING/NOTIFIKASI_LOG/{$idPerangkat}.json", [
+                Http::withoutVerifying()->post(rtrim($firebaseDbUrl, '/') . "/GPS_TRACKING/NOTIFIKASI_LOG/{$idPerangkat}.json", [
                     'waktu'            => now()->format('H:i:s'),
                     'pesan_notifikasi' => $pesanNotifikasi,
                     'tipe_notifikasi'  => $tipeNotifikasi,

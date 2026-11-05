@@ -21,7 +21,7 @@ class NotificationController extends Controller
             $idPerangkat = session('id_perangkat') ?? (session('user_data')['id_perangkat'] ?? 'GPS001');
         }
 
-        $firebaseDbUrl = config('services.firebase.database_url', env('FIREBASE_DATABASE_URL', 'https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app'));
+        $firebaseDbUrl = env('FIREBASE_DATABASE_URL');
         $notifications = [];
 
         if ($firebaseDbUrl) {
@@ -77,7 +77,7 @@ class NotificationController extends Controller
      */
     public function markAsRead(string $idPerangkat, string $pushId)
     {
-        $firebaseDbUrl = config('services.firebase.database_url', env('FIREBASE_DATABASE_URL', 'https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app'));
+        $firebaseDbUrl = env('FIREBASE_DATABASE_URL');
 
         if ($firebaseDbUrl && $idPerangkat && $pushId) {
             $baseUrl = rtrim($firebaseDbUrl, '/');
@@ -94,7 +94,7 @@ class NotificationController extends Controller
      */
     public function markAllRead(?string $idPerangkat = null)
     {
-        $firebaseDbUrl = config('services.firebase.database_url', env('FIREBASE_DATABASE_URL', 'https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app'));
+        $firebaseDbUrl = env('FIREBASE_DATABASE_URL');
 
         if ($firebaseDbUrl) {
             $baseUrl = rtrim($firebaseDbUrl, '/');
@@ -152,7 +152,7 @@ class NotificationController extends Controller
      */
     public function destroy(string $idPerangkat, string $pushId)
     {
-        $firebaseDbUrl = config('services.firebase.database_url', env('FIREBASE_DATABASE_URL', 'https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app'));
+        $firebaseDbUrl = env('FIREBASE_DATABASE_URL');
 
         if ($firebaseDbUrl && $idPerangkat && $pushId) {
             $baseUrl = rtrim($firebaseDbUrl, '/');

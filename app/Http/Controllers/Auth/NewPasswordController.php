@@ -49,17 +49,16 @@ class NewPasswordController extends Controller
                     'remember_token' => Str::random(60),
                 ])->save();
 
-                $baseFirebase = rtrim(config('services.firebase.database_url', env('FIREBASE_DATABASE_URL', 'https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app')), '/');
-                $firebaseUrl = $baseFirebase . '/GPS_TRACKING/AKUN.json';
-                $response = Http::withoutVerifying()->get($firebaseUrl);
+                $firebaseUrl = env('FIREBASE_DATABASE_URL') . '/GPS_TRACKING/AKUN.json';
+                $response = Http::get($firebaseUrl);
                 $users = $response->json();
 
                 if ($users) {
                     foreach ($users as $id => $firebaseUser) {
                         if (isset($firebaseUser['email']) && $firebaseUser['email'] === $request->email) {
                             
-                            $updateUrl = $baseFirebase . '/GPS_TRACKING/AKUN/' . $id . '.json';
-                            Http::withoutVerifying()->patch($updateUrl, [
+                            $updateUrl = env('FIREBASE_DATABASE_URL') . '/GPS_TRACKING/AKUN/' . $id . '.json';
+                            Http::patch($updateUrl, [
                                 'password' => $newPasswordHash
                             ]);
                             break;

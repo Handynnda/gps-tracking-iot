@@ -14,7 +14,7 @@ class PerangkatController extends Controller
 
     private function getFirebaseUrl(): string
     {
-        return rtrim(config('services.firebase.database_url', env('FIREBASE_DATABASE_URL', 'https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app')), '/');
+        return rtrim(env('FIREBASE_DATABASE_URL'), '/');
     }
 
     public function index()

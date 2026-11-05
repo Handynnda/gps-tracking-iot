@@ -17,11 +17,11 @@ class NotificationService
         string|float|null $lat = null,
         string|float|null $lng = null
     ): void {
-        $firebaseDbUrl = config('services.firebase.database_url', env('FIREBASE_DATABASE_URL', 'https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app'));
+        $firebaseDbUrl = env('FIREBASE_DATABASE_URL');
 
         if ($firebaseDbUrl && $idPerangkat) {
             try {
-                Http::withoutVerifying()->post(rtrim($firebaseDbUrl, '/') . "/GPS_TRACKING/NOTIFIKASI_LOG/{$idPerangkat}.json", [
+                Http::post(rtrim($firebaseDbUrl, '/') . "/GPS_TRACKING/NOTIFIKASI_LOG/{$idPerangkat}.json", [
                     'waktu'            => now()->format('H:i:s'),
                     'pesan_notifikasi' => $pesanNotifikasi,
                     'tipe_notifikasi'  => $tipeNotifikasi,

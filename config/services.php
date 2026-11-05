@@ -35,8 +35,4 @@ return [
         ],
     ],
 
-    'firebase' => [
-        'database_url' => env('FIREBASE_DATABASE_URL', 'https://gps-tracking-6ba6f-default-rtdb.asia-southeast1.firebasedatabase.app'),
-    ],
-
 ];
